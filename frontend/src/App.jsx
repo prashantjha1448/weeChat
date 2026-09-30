@@ -22,6 +22,7 @@ import Register from "./components/Register";
 import Login from "./components/Login";
 import RoomsDashboardPage from "./pages/RoomsDashboardPage";
 import CustomRoomView from "./components/CustomRoomView";
+import NotFoundPage from "./pages/NotFoundPage";
 
 
 // Settings Features & Sub-pages
@@ -184,6 +185,12 @@ const Routes = createBrowserRouter([
                 ]
             }
         ]
+    },
+
+    // Wildcard 404 Catch-All Route
+    {
+        path: '*',
+        element: <NotFoundPage />
     }
 ]);
 
