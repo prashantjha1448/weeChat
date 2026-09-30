@@ -98,7 +98,7 @@ const googleAuthUser = async (req, res) => {
     const { accessToken: accessTok, refreshToken: refreshTok } = await generateAccessAndRefreshTokens(user._id);
 
     const loggedInUser = await UserModel.findById(user._id).select('-password -refreshToken');
-    const options = { httpOnly: true, secure: process.env.NODE_ENV === 'production' };
+    const options = getCookieOptions();
 
     return res
         .status(200)

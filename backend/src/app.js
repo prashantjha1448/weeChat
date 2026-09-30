@@ -44,7 +44,7 @@ app.use(helmetSecurity);
 // 3. Exact CORS Origin Allowlist Configuration
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin || env.parsedClientUrls.includes(origin) || origin.endsWith('.vercel.app')) {
+        if (!origin || env.parsedClientUrls.includes(origin) || origin.endsWith('.vercel.app') || origin.includes('localhost') || origin.includes('127.0.0.1')) {
             callback(null, true);
         } else {
             callback(new Error('CORS Access Denied: Origin not allowed'));
