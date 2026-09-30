@@ -24,17 +24,20 @@ try {
     const rawMongo = process.env.MONGO_URI || process.env.MONGODB_URL || '';
     const rawJwtSecret = process.env.JWT_SECRET || process.env.ACCESS_TOKEN_SECRET || '';
     const rawClientUrls = process.env.CLIENT_URLS || process.env.CORS_ORIGIN || 'http://localhost:5173,https://wee-chat-virid.vercel.app';
+    const rawSameSite = ['lax', 'strict', 'none'].includes(process.env.COOKIE_SAMESITE) ? process.env.COOKIE_SAMESITE : 'lax';
 
     parsedEnv = envSchema.parse({
         ...process.env,
         MONGO_URI: rawMongo,
         JWT_SECRET: rawJwtSecret.length >= 32 ? rawJwtSecret : 'default_jwt_secret_min_32_characters_long_key_12345',
-        CLIENT_URLS: rawClientUrls
+        CLIENT_URLS: rawClientUrls,
+        COOKIE_SAMESITE: rawSameSite
     });
 } catch (error) {
     console.error('❌ FATAL: Invalid Environment Configuration:');
     if (error instanceof z.ZodError) {
-        error.errors.forEach(err => console.error(`  - ${err.path.join('.')}: ${err.message}`));
+        const issues = error.issues || error.errors || [];
+        issues.forEach(err => console.error(`  - ${err.path?.join('.') || 'env'}: ${err.message}`));
     } else {
         console.error(error);
     }
