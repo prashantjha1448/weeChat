@@ -16,9 +16,12 @@ export const initSocketClient = () => {
             return 'http://localhost:3002';
         };
 
+        const token = localStorage.getItem('token');
         socket = io(getSocketUrl(), {
+            auth: { token },
             withCredentials: true,
-            autoConnect: false
+            autoConnect: false,
+            transports: ['websocket', 'polling']
         });
 
         socket.on('connect', () => {
@@ -42,6 +45,10 @@ export const getSocket = () => {
 
 export const connectSocket = () => {
     const s = getSocket();
+    const token = localStorage.getItem('token');
+    if (s && token) {
+        s.auth = { token };
+    }
     if (!s.connected) {
         s.connect();
     }

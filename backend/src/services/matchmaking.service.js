@@ -119,7 +119,7 @@ export const findBestMatchInQueue = (currentUserId) => {
 
     let bestMatch = null;
     let highestScore = -1;
-    const MIN_THRESHOLD = 45; // Minimum score threshold to pair
+    const MIN_THRESHOLD = 0; // Instant random match pairing for any available candidate
 
     for (const [id, opponentCandidate] of waitingQueuePool.entries()) {
         if (id === currentUserId.toString()) continue;

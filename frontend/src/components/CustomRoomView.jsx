@@ -137,10 +137,12 @@ const CustomRoomView = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    {/* Participant Counter */}
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800/80 rounded-full text-xs font-bold text-neutral-300 border border-neutral-700">
-                        <Users className="w-3.5 h-3.5 text-neutral-400" />
-                        <span>{participants.length} / {roomInfo?.maxParticipants || 100}</span>
+                    {/* Participant & Seat Counter */}
+                    <div className="flex items-center gap-1.5 px-3.5 py-1.5 bg-neutral-800/80 rounded-full text-xs font-bold text-neutral-300 border border-neutral-700">
+                        <Users className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>{participants.length} Joined</span>
+                        <span className="text-neutral-500">•</span>
+                        <span className="text-neutral-400">{Math.max(0, (roomInfo?.maxParticipants || 100) - participants.length)} Seats Left</span>
                     </div>
 
                     {/* Exit/End Room Button */}
@@ -369,7 +371,7 @@ const CustomRoomView = () => {
                     <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-800">
                         <div className="flex items-center gap-2">
                             <Users className="w-4 h-4 text-neutral-400" />
-                            <h3 className="text-sm font-bold text-white">Participants ({participants.length})</h3>
+                            <h3 className="text-sm font-bold text-white">Participants ({participants.length} Joined • {Math.max(0, (roomInfo?.maxParticipants || 100) - participants.length)} Left)</h3>
                         </div>
                         <button type="button" onClick={() => setRosterOpen(false)} className="text-neutral-400 hover:text-white">
                             <X className="w-4 h-4" />

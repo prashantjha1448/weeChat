@@ -115,14 +115,24 @@ export const useCustomRoom = (roomId, currentUser) => {
     useEffect(() => {
         if (!roomId) return;
 
+        const token = localStorage.getItem('token');
         const socket = io(SOCKET_SERVER_URL, {
+            auth: { token },
             withCredentials: true,
-            transports: ['websocket']
+            transports: ['websocket', 'polling']
         });
         socketRef.current = socket;
 
-        socket.on('connect', () => {
+        const joinCurrentRoom = () => {
             socket.emit('room:join', { roomId });
+        };
+
+        if (socket.connected) {
+            joinCurrentRoom();
+        }
+
+        socket.on('connect', () => {
+            joinCurrentRoom();
         });
 
         // 1. Participant Roster Updated
