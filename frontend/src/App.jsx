@@ -37,6 +37,7 @@ import HelpLegalSettings from "./features/settings/HelpLegalSettings";
 import ActiveDevicesSubPage from "./features/settings/subpages/ActiveDevicesSubPage";
 import BlockedUsersSubPage from "./features/settings/subpages/BlockedUsersSubPage";
 import MyReportsSubPage from "./features/settings/subpages/MyReportsSubPage";
+import SupportTicketsSubPage from "./features/settings/subpages/SupportTicketsSubPage";
 import JoinRoomRedirect from "./components/JoinRoomRedirect";
 
 const Routes = createBrowserRouter([
