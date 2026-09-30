@@ -30,7 +30,7 @@ export const authLimiter = rateLimit({
     skipSuccessfulRequests: true,
     standardHeaders: true,
     legacyHeaders: false,
-    validate: { keyGenerator: false },
+    validate: false,
     keyGenerator: (req) => {
         const rawEmail = req.body?.email || req.body?.usernameOrEmail || req.body?.username || '';
         const emailStr = typeof rawEmail === 'string' ? rawEmail : '';
@@ -55,7 +55,7 @@ export const uploadLimiter = rateLimit({
     max: 20,
     standardHeaders: true,
     legacyHeaders: false,
-    validate: { keyGenerator: false },
+    validate: false,
     keyGenerator: (req) => req.user?._id ? String(req.user._id) : req.ip,
     message: (req, res) => {
         res.setHeader('Retry-After', Math.ceil(60 * 60));

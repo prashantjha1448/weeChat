@@ -114,7 +114,20 @@ const googleAuthUser = async (req, res) => {
 };
 
 
- const registerUser = async(req , res) => {
+const getCookieOptions = () => {
+    const opts = {
+        httpOnly: true,
+        secure: env.NODE_ENV === "production",
+        sameSite: env.COOKIE_SAMESITE || "lax",
+        path: "/"
+    };
+    if (env.COOKIE_DOMAIN) {
+        opts.domain = env.COOKIE_DOMAIN;
+    }
+    return opts;
+};
+
+const registerUser = async(req , res) => {
 
    const {name , username , email , dob , mobile_Number , gender , password} = req.body;
 
@@ -151,13 +164,7 @@ const googleAuthUser = async (req, res) => {
 
    const createdUser = await UserModel.findById(NewUser._id).select("-password -refreshToken");
 
-   const options = { 
-       httpOnly: true, 
-       secure: env.NODE_ENV === "production",
-       sameSite: env.COOKIE_SAMESITE,
-       domain: env.COOKIE_DOMAIN || undefined,
-       path: "/"
-   };
+   const options = getCookieOptions();
 
    return res.status(201).cookie("accessToken" , accessToken , options).cookie("refreshToken", refreshToken , options).json(
     new ApiResponse(201, { user : createdUser , accessToken , refreshToken, otp } , "User registered successfully. Please verify your email OTP.")
@@ -213,13 +220,7 @@ const loginUser = async (req , res)=> {
 
   const logInUser = await UserModel.findById(User._id).select("-password -refreshToken");
 
-  const options = {
-      httpOnly: true, 
-      secure: env.NODE_ENV === "production",
-      sameSite: env.COOKIE_SAMESITE,
-      domain: env.COOKIE_DOMAIN || undefined,
-      path: "/"
-  };
+  const options = getCookieOptions();
 
   return res.status(200).cookie("accessToken" ,accessToken , options).cookie("refreshToken", refreshToken , options).json(
       new ApiResponse(200 ,{user : logInUser , accessToken , refreshToken}, "User logged in successfully")
