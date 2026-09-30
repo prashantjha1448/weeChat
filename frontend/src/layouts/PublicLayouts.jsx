@@ -1,39 +1,38 @@
-import React, {useEffect , useState} from 'react'
-import {Outlet , Navigate} from 'react-router'
-import {useSelector} from 'react-redux'
-import { useAuthentication } from '../hooks/auth.hooks'
-
+import React, { useEffect, useState } from 'react';
+import { Outlet, Navigate } from 'react-router';
+import { useSelector } from 'react-redux';
+import { useAuthentication } from '../hooks/auth.hooks';
 
 const PublicLayouts = () => {
+  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { getCurrentUserStatus } = useAuthentication();
+  const [loading, setLoading] = useState(true);
 
-const {isAuthenticated} = useSelector((state)=> state.auth)
-const {getCurrentUserStatus } = useAuthentication()
-const [Loading, setLoading] = useState(true)
+  useEffect(() => {
+    const verifySession = async () => {
+      await getCurrentUserStatus();
+      setLoading(false);
+    };
+    verifySession();
+  }, []);
 
-useEffect(()=>{
-  const verifysession = async ()=>{
-    await getCurrentUserStatus()
-    setLoading(false)
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F5F5F7] text-neutral-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-3 border-neutral-300 border-t-black rounded-full animate-spin"></div>
+      </div>
+    );
   }
-  verifysession()
-},
-[]);
 
-if(Loading){
-  return (
-    <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-            </div>
-  )
-}
-if(isAuthenticated){
- return < Navigate to='/home' replace />
-}
+  if (isAuthenticated) {
+    return <Navigate to="/home" replace />;
+  }
+
   return (
     <div>
-        <Outlet/>
+      <Outlet />
     </div>
-  )
-}
+  );
+};
 
-export default PublicLayouts
+export default PublicLayouts;

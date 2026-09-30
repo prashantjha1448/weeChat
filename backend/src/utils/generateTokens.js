@@ -1,47 +1,51 @@
-import jwt from "jsonwebtoken"
-import UserModel from "../models/user.model.js"
-import ApiError from './ApiError.js'
+import jwt from "jsonwebtoken";
+import UserModel from "../models/user.model.js";
+import ApiError from './ApiError.js';
+import { env } from '../config/env.js';
 
 export const generateAccessAndRefreshTokens = async (userId) => {
     try {
+        const user = await UserModel.findById(userId);
 
-        const user = await UserModel.findById(userId)
+        if (!user) {
+            throw new ApiError(404, "User not found for token generation");
+        }
 
-        //  Access Token Genration here ---
+        // Access Token — No PII, explicit HS256 algorithm, issuer & audience
         const accessToken = jwt.sign(
             {
-                _id: userId._id, email: user.email, username: user.username 
+                _id: String(user._id),
+                role: user.role || 'user'
             },
-            process.env.ACCESS_TOKEN_SECRET,
+            env.JWT_SECRET,
             {
-                expiresIn: process.env.ACCESS_TOKEN_EXPIRY
+                algorithm: 'HS256',
+                issuer: 'nexus-auth',
+                audience: 'nexus-client',
+                expiresIn: '15m'
             }
-        )
+        );
 
-
-        //  Refress Token Generation here  ---
+        // Refresh Token Generation
         const refreshToken = jwt.sign(
             {
-                id: user._id
+                _id: String(user._id)
             },
-            process.env.REFRESH_TOKEN_SECRET,
+            env.REFRESH_TOKEN_SECRET || env.JWT_SECRET,
             {
-                expiresIn: process.env.REFRESH_TOKEN_EXPIRY
+                algorithm: 'HS256',
+                issuer: 'nexus-auth',
+                audience: 'nexus-client',
+                expiresIn: '7d'
             }
-        )
-
-
-        //  save token in user Document 
+        );
 
         user.refreshToken = refreshToken;
-        await user.save({ validateBeforeSave: false })
+        await user.save({ validateBeforeSave: false });
 
-
-        return { accessToken, refreshToken }
-
-
+        return { accessToken, refreshToken };
 
     } catch (error) {
-        throw new ApiError(500, "Something went wrong while generating tokens")
+        throw new ApiError(500, error.message || "Something went wrong while generating tokens");
     }
-}
+};

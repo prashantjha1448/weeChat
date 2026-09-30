@@ -1,12 +1,20 @@
-import axios from 'axios'
+import axios from 'axios';
+
+const getBaseUrl = () => {
+    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+    if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+        return 'https://weechat-api.onrender.com/api/';
+    }
+    return 'http://localhost:3002/api/';
+};
 
 const api = axios.create({
-    baseURL : 'http://localhost:3000/api/',
-    withCredentials : true,
-    headers : {
-        'Content-Type' : 'application/json'
+    baseURL: getBaseUrl(),
+    withCredentials: true,
+    headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'nexus'
     }
+});
 
-})
-
-export default api
+export default api;
