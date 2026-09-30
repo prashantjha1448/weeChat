@@ -20,8 +20,8 @@ export const generateAccessAndRefreshTokens = async (userId) => {
             env.JWT_SECRET,
             {
                 algorithm: 'HS256',
-                issuer: 'nexus-auth',
-                audience: 'nexus-client',
+                issuer: 'weechat-auth',
+                audience: 'weechat-client',
                 expiresIn: '15m'
             }
         );
@@ -34,8 +34,8 @@ export const generateAccessAndRefreshTokens = async (userId) => {
             env.REFRESH_TOKEN_SECRET || env.JWT_SECRET,
             {
                 algorithm: 'HS256',
-                issuer: 'nexus-auth',
-                audience: 'nexus-client',
+                issuer: 'weechat-auth',
+                audience: 'weechat-client',
                 expiresIn: '7d'
             }
         );

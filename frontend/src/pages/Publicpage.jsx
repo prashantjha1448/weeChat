@@ -22,13 +22,13 @@ const Publicpage = () => {
             <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/80 border-b border-neutral-200/80">
                 <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
                     
-                    {/* Minimalist Nexus Logo */}
+                    {/* Minimalist weeChat Logo */}
                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
                         <div className="w-4 h-4 rounded-full bg-[#1D1D1F] flex items-center justify-center">
                             <div className="w-1.5 h-1.5 rounded-full bg-white" />
                         </div>
                         <span className="text-sm font-semibold tracking-tight text-[#1D1D1F]">
-                            Nexus
+                            weeChat
                         </span>
                     </div>
 
@@ -72,7 +72,7 @@ const Publicpage = () => {
 
                 {/* Subtitle */}
                 <p className="text-[#86868B] text-base sm:text-xl max-w-2xl mx-auto mb-12 leading-relaxed font-normal">
-                    Nexus delivers a unified suite of real-time communication tools—engineered with zero latency, bank-grade encryption, and seamless Apple light design.
+                    weeChat delivers a unified suite of real-time communication tools—engineered with zero latency, bank-grade encryption, and seamless Apple light design.
                 </p>
 
                 {/* CTA Buttons */}
@@ -108,7 +108,7 @@ const Publicpage = () => {
                             Ultra-Fast Chat Engine.
                         </h2>
                         <p className="text-[#86868B] text-sm sm:text-base leading-relaxed mb-8 font-normal">
-                            Built on direct WebSocket connections, Nexus messaging delivers your conversations in real time with zero lag. Features live typing indicators, delivery status, presence updates, and complete privacy.
+                            Built on direct WebSocket connections, weeChat messaging delivers your conversations in real time with zero lag. Features live typing indicators, delivery status, presence updates, and complete privacy.
                         </p>
                         
                         <div className="space-y-3 mb-8">
@@ -303,7 +303,7 @@ const Publicpage = () => {
                             <div className="flex items-center justify-between pb-4 mb-4 border-b border-neutral-100">
                                 <div className="flex items-center gap-2">
                                     <Users className="w-4 h-4 text-neutral-700" />
-                                    <span className="text-xs font-semibold text-[#1D1D1F]">Nexus Multi-Participant Lounge</span>
+                                    <span className="text-xs font-semibold text-[#1D1D1F]">weeChat Multi-Participant Lounge</span>
                                 </div>
                                 <span className="text-[10px] font-mono text-emerald-600 font-bold">● 48 / 100 Online</span>
                             </div>
@@ -420,7 +420,7 @@ const Publicpage = () => {
             <footer className="border-t border-neutral-200 py-24 text-center">
                 <div className="max-w-4xl mx-auto px-6">
                     <h2 className="text-4xl sm:text-6xl font-bold tracking-tight text-[#1D1D1F] mb-6">
-                        Ready to experience Nexus?
+                        Ready to experience weeChat?
                     </h2>
                     <p className="text-[#86868B] text-sm sm:text-base mb-10 max-w-lg mx-auto font-normal">
                         Join thousands using the ultimate all-in-one Apple Light communication platform today.
@@ -433,7 +433,7 @@ const Publicpage = () => {
                     </button>
 
                     <div className="pt-8 border-t border-neutral-200 flex flex-col sm:flex-row justify-between items-center text-xs text-[#86868B] gap-4">
-                        <span>Copyright © {new Date().getFullYear()} Nexus Inc. All rights reserved.</span>
+                        <span>Copyright © {new Date().getFullYear()} weeChat Inc. All rights reserved.</span>
                         <div className="flex gap-6">
                             <span onClick={() => navigate('/login')} className="hover:text-[#1D1D1F] cursor-pointer transition-colors font-medium">Privacy Policy</span>
                             <span onClick={() => navigate('/login')} className="hover:text-[#1D1D1F] cursor-pointer transition-colors font-medium">Terms of Service</span>

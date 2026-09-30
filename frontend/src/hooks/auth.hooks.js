@@ -106,7 +106,7 @@ const useAuthentication = () => {
                 localStorage.setItem('token', response.data.accessToken);
             }
             toast.success("Google Sign-In Successful", {
-                description: response.message || "Welcome to Nexus!"
+                description: response.message || "Welcome to weeChat!"
             });
             dispatch(login_user(response.data.user));
             Navigate('/home');

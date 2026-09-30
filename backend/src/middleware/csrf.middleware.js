@@ -12,7 +12,7 @@ export const csrfProtection = (req, res, next) => {
     }
 
     const requestedWith = req.header('X-Requested-With');
-    if (requestedWith !== 'nexus') {
+    if (requestedWith !== 'weechat' && requestedWith !== 'nexus') {
         throw new ApiError(403, 'CSRF Protection: Missing or invalid X-Requested-With header');
     }
 

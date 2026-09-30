@@ -17,7 +17,7 @@ const NotFoundPage = () => {
                     <span className="w-8 h-8 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/10">
                         <Compass className="w-5 h-5 text-purple-400 animate-pulse" />
                     </span>
-                    <span className="tracking-tight text-xl font-bold">Nexus</span>
+                    <span className="tracking-tight text-xl font-bold">weeChat</span>
                 </div>
 
                 {/* Big 404 Display */}

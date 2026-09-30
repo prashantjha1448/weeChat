@@ -15,12 +15,20 @@ const authMiddleware = async (req, res, next) => {
         try {
             decoded = jwt.verify(token, env.JWT_SECRET, {
                 algorithms: ['HS256'],
-                issuer: 'nexus-auth',
-                audience: 'nexus-client'
+                issuer: 'weechat-auth',
+                audience: 'weechat-client'
             });
         } catch (err) {
-            // Fallback for legacy tokens during transition
-            decoded = jwt.verify(token, env.JWT_SECRET);
+            try {
+                decoded = jwt.verify(token, env.JWT_SECRET, {
+                    algorithms: ['HS256'],
+                    issuer: 'nexus-auth',
+                    audience: 'nexus-client'
+                });
+            } catch (e) {
+                // Fallback for legacy tokens during transition
+                decoded = jwt.verify(token, env.JWT_SECRET);
+            }
         }
 
         const user = await UserModel.findById(decoded?._id).select("-password -refreshToken");

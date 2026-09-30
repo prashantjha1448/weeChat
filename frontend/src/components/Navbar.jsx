@@ -36,7 +36,7 @@ const Navbar = () => {
                     <div className="w-1.5 h-1.5 rounded-full bg-white" />
                 </div>
                 <span className="text-sm font-semibold tracking-tight text-neutral-900 group-hover:text-black transition-colors">
-                    Nexus
+                    weeChat
                 </span>
             </div>
 
