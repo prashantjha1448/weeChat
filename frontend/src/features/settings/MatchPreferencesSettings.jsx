@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { getPreferencesApi, updatePreferencesApi, getInterestsApi } from './settings.api';
 import { AppleGroupedList } from './components/AppleGroupedList';
 import { SegmentedControl } from './components/SegmentedControl';
-import { Check, MapPin, Crosshair, Plus, X, Globe, Sparkles } from 'lucide-react';
+import { Check, MapPin, Crosshair, Plus, X, Globe, Tag } from 'lucide-react';
 
 const MatchPreferencesSettings = () => {
     const [gender, setGender] = useState('any');
@@ -456,7 +456,7 @@ const MatchPreferencesSettings = () => {
                     {/* Add Custom Tag Form */}
                     <form onSubmit={handleAddCustomTag} className="flex gap-2">
                         <div className="relative flex-1">
-                            <Sparkles className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                            <Tag className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
                             <input
                                 type="text"
                                 placeholder="Type a custom interest tag (e.g. Anime, Crypto, Football)..."

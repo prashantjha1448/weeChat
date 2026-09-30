@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Users, Lock, Video, Mic, MessageSquare, Sparkles } from 'lucide-react';
+import { X, Users, Lock, Video, Mic, MessageSquare, Layers } from 'lucide-react';
 import { createRoomApi } from '../services/customRoom.services';
 import { toast } from 'sonner';
 
@@ -54,7 +54,7 @@ const CreateRoomModal = ({ isOpen, onClose, onRoomCreated }) => {
                 <div className="flex items-center justify-between px-6 py-5 border-b border-neutral-100">
                     <div className="flex items-center gap-2.5">
                         <div className="w-9 h-9 rounded-2xl bg-black text-white flex items-center justify-center shadow-xs">
-                            <Sparkles className="w-5 h-5 text-amber-400 stroke-[1.8]" />
+                            <Users className="w-5 h-5 text-white stroke-[1.8]" />
                         </div>
                         <div>
                             <h3 className="text-lg font-bold text-neutral-900 tracking-tight">Create Custom Room</h3>
@@ -109,7 +109,7 @@ const CreateRoomModal = ({ isOpen, onClose, onRoomCreated }) => {
                         </label>
                         <div className="grid grid-cols-2 gap-2.5">
                             {[
-                                { id: 'all', label: 'All Features', desc: 'Video + Audio + Chat + Share', icon: Sparkles },
+                                { id: 'all', label: 'All Features', desc: 'Video + Audio + Chat + Share', icon: Layers },
                                 { id: 'video', label: 'Video Call', desc: 'Face-to-face video grid', icon: Video },
                                 { id: 'audio', label: 'Audio Lounge', desc: 'Voice chat & podcast style', icon: Mic },
                                 { id: 'chat', label: 'Text Chat Room', desc: 'High capacity group messaging', icon: MessageSquare }
