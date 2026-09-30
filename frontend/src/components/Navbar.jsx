@@ -32,9 +32,7 @@ const Navbar = () => {
                 onClick={() => navigate('/home')} 
                 className="flex items-center gap-2 cursor-pointer group"
             >
-                <div className="w-4 h-4 rounded-full bg-black group-hover:scale-110 transition-transform duration-200 flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                </div>
+                <img src="/weechat-logo.png" alt="weeChat Logo" className="w-6 h-6 rounded-lg object-cover group-hover:scale-105 transition-transform" />
                 <span className="text-sm font-semibold tracking-tight text-neutral-900 group-hover:text-black transition-colors">
                     weeChat
                 </span>

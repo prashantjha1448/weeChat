@@ -23,10 +23,8 @@ const Publicpage = () => {
                 <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
                     
                     {/* Minimalist weeChat Logo */}
-                    <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-                        <div className="w-4 h-4 rounded-full bg-[#1D1D1F] flex items-center justify-center">
-                            <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                        </div>
+                    <div className="flex items-center gap-2 cursor-pointer group" onClick={() => navigate('/')}>
+                        <img src="/weechat-logo.png" alt="weeChat Logo" className="w-6 h-6 rounded-lg object-cover group-hover:scale-105 transition-transform" />
                         <span className="text-sm font-semibold tracking-tight text-[#1D1D1F]">
                             weeChat
                         </span>

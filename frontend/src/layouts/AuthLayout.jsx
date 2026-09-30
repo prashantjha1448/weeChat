@@ -19,9 +19,7 @@ const AuthLayout = () => {
                     role="button"
                     aria-label="weeChat home"
                 >
-                    <div className="w-5 h-5 rounded-full bg-black group-hover:scale-105 transition-transform duration-200 flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-white" />
-                    </div>
+                    <img src="/weechat-logo.png" alt="weeChat Logo" className="w-6 h-6 rounded-lg object-cover group-hover:scale-105 transition-transform" />
                     <span className="text-base font-bold tracking-tight text-neutral-900 group-hover:text-black transition-colors">
                         weeChat
                     </span>

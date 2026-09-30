@@ -14,9 +14,7 @@ const NotFoundPage = () => {
             <div className="relative z-10 max-w-lg w-full text-center flex flex-col items-center gap-6 animate-in fade-in zoom-in-95 duration-300">
                 {/* Logo & Icon Badge */}
                 <div className="flex items-center gap-2 text-white font-semibold text-lg mb-2">
-                    <span className="w-8 h-8 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/10">
-                        <Compass className="w-5 h-5 text-purple-400 animate-pulse" />
-                    </span>
+                    <img src="/weechat-logo.png" alt="weeChat Logo" className="w-8 h-8 rounded-xl object-cover border border-white/20" />
                     <span className="tracking-tight text-xl font-bold">weeChat</span>
                 </div>
 
