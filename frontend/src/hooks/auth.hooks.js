@@ -23,6 +23,9 @@ const useAuthentication = () => {
         try {
             const response = await registerUserService(data);
             console.log("Success Response:", response);
+            if (response.data?.accessToken) {
+                localStorage.setItem('token', response.data.accessToken);
+            }
             toast.success("Account Created", {
                 description: "Please enter the OTP sent to your email to verify."
             });
@@ -76,6 +79,9 @@ const useAuthentication = () => {
     const onLogInSubmit = async (loginData) => {
         try {
             const response = await loginUserService(loginData);
+            if (response.data?.accessToken) {
+                localStorage.setItem('token', response.data.accessToken);
+            }
             toast.success("Welcome Back! ", {
                 description: response.message || "Signed in successfully."
             });
@@ -96,6 +102,9 @@ const useAuthentication = () => {
                 : { accessToken: googleResponse.access_token };
 
             const response = await googleAuthService(payload);
+            if (response.data?.accessToken) {
+                localStorage.setItem('token', response.data.accessToken);
+            }
             toast.success("Google Sign-In Successful", {
                 description: response.message || "Welcome to Nexus!"
             });
@@ -116,6 +125,7 @@ const useAuthentication = () => {
                 dispatch(login_user(response.data));
             }
         } catch (error) {
+            localStorage.removeItem('token');
             dispatch(logout_user());
             console.log(error);
         }
@@ -124,12 +134,14 @@ const useAuthentication = () => {
     const onLogoutSubmit = async () => {
         try {
             const response = await logoutUserService();
+            localStorage.removeItem('token');
             toast.success("Signed Out", {
                 description: response.message || "You have been logged out successfully."
             });
             dispatch(logout_user());
             Navigate('/login');
         } catch (error) {
+            localStorage.removeItem('token');
             const errorMessage = error.response?.data?.message || "Logout failed";
             toast.error("Logout Failed", {
                 description: errorMessage

@@ -115,10 +115,11 @@ const googleAuthUser = async (req, res) => {
 
 
 const getCookieOptions = () => {
+    const isProd = env.NODE_ENV === "production";
     const opts = {
         httpOnly: true,
-        secure: env.NODE_ENV === "production",
-        sameSite: env.COOKIE_SAMESITE || "lax",
+        secure: isProd,
+        sameSite: isProd ? "none" : (env.COOKIE_SAMESITE || "lax"),
         path: "/"
     };
     if (env.COOKIE_DOMAIN) {
