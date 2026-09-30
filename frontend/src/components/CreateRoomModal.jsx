@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Users, Lock, Video, Mic, MessageSquare, Layers } from 'lucide-react';
+import { X, Users, Lock, Video, Mic, MessageSquare, Layers, Calendar, Clock } from 'lucide-react';
 import { createRoomApi } from '../services/customRoom.services';
 import { toast } from 'sonner';
 
@@ -10,6 +10,8 @@ const CreateRoomModal = ({ isOpen, onClose, onRoomCreated }) => {
     const [maxParticipants, setMaxParticipants] = useState(100);
     const [isPrivate, setIsPrivate] = useState(false);
     const [passcode, setPasscode] = useState('');
+    const [isScheduled, setIsScheduled] = useState(false);
+    const [scheduledAt, setScheduledAt] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     if (!isOpen) return null;
@@ -21,6 +23,11 @@ const CreateRoomModal = ({ isOpen, onClose, onRoomCreated }) => {
             return;
         }
 
+        if (isScheduled && !scheduledAt) {
+            toast.error('Please select a date and time for the scheduled room');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             const resData = await createRoomApi({
@@ -29,17 +36,19 @@ const CreateRoomModal = ({ isOpen, onClose, onRoomCreated }) => {
                 roomType,
                 maxParticipants: Number(maxParticipants),
                 isPrivate,
-                passcode: isPrivate ? passcode : undefined
+                passcode: isPrivate ? passcode : undefined,
+                isScheduled,
+                scheduledAt: isScheduled ? scheduledAt : undefined
             });
 
-            toast.success('Custom Room Created!', {
+            toast.success(isScheduled ? 'Scheduled Room Created!' : 'Custom Room Created!', {
                 description: `Room Code: ${resData.data.roomId}`
             });
 
             if (onRoomCreated) onRoomCreated(resData.data);
             onClose();
         } catch (err) {
-            const msg = err.response?.data?.message || 'Failed to create custom room';
+            const msg = err.response?.data?.message || 'Failed to create room';
             toast.error(msg);
         } finally {
             setIsSubmitting(false);
@@ -81,7 +90,7 @@ const CreateRoomModal = ({ isOpen, onClose, onRoomCreated }) => {
                         <input
                             type="text"
                             required
-                            placeholder="e.g. Nexus Tech Lounge & Chill"
+                            placeholder="e.g. weeChat Lounge & Chill"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-sm font-medium text-neutral-900 placeholder-neutral-400 focus:outline-none focus:bg-white focus:border-black focus:ring-2 focus:ring-black/10 transition-all"
@@ -127,7 +136,7 @@ const CreateRoomModal = ({ isOpen, onClose, onRoomCreated }) => {
                                         }`}
                                     >
                                         <div className="flex items-center gap-2">
-                                            <Icon className={`w-4 h-4 ${isSelected ? 'text-amber-400' : 'text-neutral-600'}`} />
+                                            <Icon className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-neutral-600'}`} />
                                             <span className="text-xs font-bold">{type.label}</span>
                                         </div>
                                         <span className={`text-[10px] ${isSelected ? 'text-neutral-300' : 'text-neutral-500'}`}>
@@ -163,6 +172,41 @@ const CreateRoomModal = ({ isOpen, onClose, onRoomCreated }) => {
                             <span>50 Users</span>
                             <span>100 Users (Max)</span>
                         </div>
+                    </div>
+
+                    {/* Schedule Room Section */}
+                    <div className="p-4 bg-neutral-50 border border-neutral-200/80 rounded-2xl flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-neutral-700" />
+                                <div>
+                                    <p className="text-xs font-bold text-neutral-900">Schedule Room for Later</p>
+                                    <p className="text-[11px] text-neutral-500">Set start date & time</p>
+                                </div>
+                            </div>
+                            <input
+                                type="checkbox"
+                                checked={isScheduled}
+                                onChange={(e) => setIsScheduled(e.target.checked)}
+                                className="w-4 h-4 accent-black rounded cursor-pointer"
+                            />
+                        </div>
+
+                        {isScheduled && (
+                            <div className="flex flex-col gap-1.5 pt-1">
+                                <label className="text-[11px] font-semibold text-neutral-600 flex items-center gap-1">
+                                    <Clock className="w-3.5 h-3.5 text-neutral-500" />
+                                    Select Date & Start Time
+                                </label>
+                                <input
+                                    type="datetime-local"
+                                    required={isScheduled}
+                                    value={scheduledAt}
+                                    onChange={(e) => setScheduledAt(e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-white border border-neutral-200 rounded-xl text-xs font-medium text-neutral-900 focus:outline-none focus:border-black transition-all cursor-pointer"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {/* Privacy & Passcode */}
@@ -204,7 +248,7 @@ const CreateRoomModal = ({ isOpen, onClose, onRoomCreated }) => {
                                 : 'bg-black text-white hover:bg-neutral-800 active:scale-[0.98]'
                         }`}
                     >
-                        {isSubmitting ? 'Creating Room...' : 'Create & Launch Room'}
+                        {isSubmitting ? 'Creating Room...' : isScheduled ? 'Schedule Custom Room' : 'Create & Launch Room'}
                     </button>
                 </form>
             </div>

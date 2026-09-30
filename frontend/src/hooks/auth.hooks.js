@@ -40,6 +40,16 @@ const useAuthentication = () => {
         }
     };
 
+    const handlePostAuthRedirect = () => {
+        const redirectUrl = sessionStorage.getItem('redirect_after_auth');
+        if (redirectUrl) {
+            sessionStorage.removeItem('redirect_after_auth');
+            Navigate(redirectUrl, { replace: true });
+        } else {
+            Navigate('/home');
+        }
+    };
+
     const verifyOtpSubmit = async (otp) => {
         try {
             const response = await verifyEmailOtpService({ otp });
@@ -49,7 +59,7 @@ const useAuthentication = () => {
             if (response.data?.user) {
                 dispatch(login_user(response.data.user));
             }
-            Navigate('/home');
+            handlePostAuthRedirect();
             return response.data;
         } catch (error) {
             const errorMessage = error.response?.data?.message || "Verification failed";
@@ -86,7 +96,7 @@ const useAuthentication = () => {
                 description: response.message || "Signed in successfully."
             });
             dispatch(login_user(response.data.user));
-            Navigate('/home');
+            handlePostAuthRedirect();
         } catch (error) {
             const errorMessage = error.response?.data?.message || "Login failed";
             toast.error("Authentication Failed", {
@@ -109,7 +119,7 @@ const useAuthentication = () => {
                 description: response.message || "Welcome to weeChat!"
             });
             dispatch(login_user(response.data.user));
-            Navigate('/home');
+            handlePostAuthRedirect();
         } catch (error) {
             const errorMessage = error.response?.data?.message || "Google Authentication failed";
             toast.error("Google Sign-In Failed", {

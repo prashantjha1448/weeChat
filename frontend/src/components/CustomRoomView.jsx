@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router';
 import { useSelector } from 'react-redux';
 import { 
     Mic, MicOff, Video, VideoOff, Monitor, MessageSquare, 
-    Users, LogOut, Copy, Shield, Trash2, Send, X, Radio
+    Users, LogOut, Copy, Shield, Trash2, Send, X, Radio, Share2
 } from 'lucide-react';
 import { useCustomRoom } from '../hooks/useCustomRoom';
 import { getRoomDetailsApi, endRoomApi } from '../services/customRoom.services';
@@ -68,6 +68,14 @@ const CustomRoomView = () => {
         toast.success('Room code copied to clipboard!');
     };
 
+    const handleCopyShareLink = () => {
+        const shareUrl = `${window.location.origin}/join/${roomId}`;
+        navigator.clipboard.writeText(shareUrl);
+        toast.success('Room share link copied!', {
+            description: shareUrl
+        });
+    };
+
     const handleSendMsg = (e) => {
         e.preventDefault();
         if (!messageInput.trim()) return;
@@ -114,6 +122,17 @@ const CustomRoomView = () => {
                     >
                         <span>{roomId?.toUpperCase()}</span>
                         <Copy className="w-3 h-3 text-neutral-400" />
+                    </button>
+
+                    {/* Share Link Button */}
+                    <button
+                        type="button"
+                        onClick={handleCopyShareLink}
+                        className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-white text-black hover:bg-neutral-200 rounded-full text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                        title="Click to copy shareable room link"
+                    >
+                        <Share2 className="w-3 h-3 text-black" />
+                        <span>Share Link</span>
                     </button>
                 </div>
 

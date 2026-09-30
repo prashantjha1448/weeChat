@@ -37,10 +37,10 @@ import HelpLegalSettings from "./features/settings/HelpLegalSettings";
 import ActiveDevicesSubPage from "./features/settings/subpages/ActiveDevicesSubPage";
 import BlockedUsersSubPage from "./features/settings/subpages/BlockedUsersSubPage";
 import MyReportsSubPage from "./features/settings/subpages/MyReportsSubPage";
-import SupportTicketsSubPage from "./features/settings/subpages/SupportTicketsSubPage";
+import JoinRoomRedirect from "./components/JoinRoomRedirect";
 
 const Routes = createBrowserRouter([
-    // 1. Public Landing Route
+    // 1. Public Landing & Join Routes
     {
         path: '/',
         element: <PublicLayouts />,
@@ -48,6 +48,14 @@ const Routes = createBrowserRouter([
             {
                 index: true,
                 element: <Publicpage />
+            },
+            {
+                path: 'join/:roomId',
+                element: <JoinRoomRedirect />
+            },
+            {
+                path: 'room/:roomId',
+                element: <JoinRoomRedirect />
             }
         ]
     },

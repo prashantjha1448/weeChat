@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { 
     Users, Plus, Search, Video, Mic, MessageSquare, 
-    Sparkles, RefreshCw, Lock, ArrowRight 
+    RefreshCw, Lock, ArrowRight, Calendar, Clock, Share2, X
 } from 'lucide-react';
 import CreateRoomModal from '../components/CreateRoomModal';
 import { getActiveRoomsApi, joinRoomApi } from '../services/customRoom.services';
@@ -15,6 +15,7 @@ const RoomsDashboardPage = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedType, setSelectedType] = useState('all');
+    const [scheduleFilter, setScheduleFilter] = useState('all'); // 'all', 'live', 'scheduled'
     const [quickCodeInput, setQuickCodeInput] = useState('');
     const [createModalOpen, setCreateModalOpen] = useState(false);
     const [passcodeModalOpen, setPasscodeModalOpen] = useState(false);
@@ -74,12 +75,26 @@ const RoomsDashboardPage = () => {
         handleJoinClick(code);
     };
 
+    const handleCopyShareLink = (e, roomId) => {
+        e.stopPropagation();
+        const shareUrl = `${window.location.origin}/join/${roomId}`;
+        navigator.clipboard.writeText(shareUrl);
+        toast.success('Room share link copied!', {
+            description: shareUrl
+        });
+    };
+
     const filteredRooms = rooms.filter(room => {
         const matchesSearch = room.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             room.roomId.toLowerCase().includes(searchQuery.toLowerCase()) ||
             room.host?.name?.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesType = selectedType === 'all' || room.roomType === selectedType;
-        return matchesSearch && matchesType;
+        const matchesSchedule = 
+            scheduleFilter === 'all' ? true :
+            scheduleFilter === 'scheduled' ? Boolean(room.isScheduled) :
+            !room.isScheduled;
+
+        return matchesSearch && matchesType && matchesSchedule;
     });
 
     return (
@@ -117,7 +132,7 @@ const RoomsDashboardPage = () => {
                         onClick={() => setCreateModalOpen(true)}
                         className="flex-1 md:flex-initial px-6 py-3.5 bg-black hover:bg-neutral-800 active:scale-95 text-white text-sm font-bold rounded-full transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-black/10"
                     >
-                        <Plus className="w-4 h-4 text-amber-400 stroke-[2.5]" />
+                        <Plus className="w-4 h-4 text-white stroke-[2.5]" />
                         <span>Create Custom Room</span>
                     </button>
                 </div>
@@ -142,7 +157,7 @@ const RoomsDashboardPage = () => {
                 <form onSubmit={handleQuickJoinSubmit} className="relative flex items-center">
                     <input
                         type="text"
-                        placeholder="Enter Room Code (e.g. NEXUS-X7K9)"
+                        placeholder="Enter Room Code (e.g. WEECHAT-X7K9)"
                         value={quickCodeInput}
                         onChange={(e) => setQuickCodeInput(e.target.value)}
                         className="w-full pl-4 pr-12 py-3.5 bg-white border border-neutral-200/80 rounded-2xl text-sm font-mono text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-black focus:ring-2 focus:ring-black/10 transition-all shadow-xs"
@@ -157,32 +172,68 @@ const RoomsDashboardPage = () => {
                 </form>
             </div>
 
-            {/* Filter Tags */}
-            <div className="max-w-6xl mx-auto flex items-center gap-2 mb-8 overflow-x-auto pb-2">
-                {[
-                    { id: 'all', label: 'All Public Rooms' },
-                    { id: 'video', label: 'Video Call Rooms', icon: Video },
-                    { id: 'audio', label: 'Audio Lounges', icon: Mic },
-                    { id: 'chat', label: 'Text Chat Rooms', icon: MessageSquare }
-                ].map((tag) => {
-                    const Icon = tag.icon;
-                    const isSelected = selectedType === tag.id;
-                    return (
-                        <button
-                            key={tag.id}
-                            type="button"
-                            onClick={() => setSelectedType(tag.id)}
-                            className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
-                                isSelected
-                                    ? 'bg-black text-white shadow-md shadow-black/10'
-                                    : 'bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-100'
-                            }`}
-                        >
-                            {Icon && <Icon className="w-3.5 h-3.5" />}
-                            <span>{tag.label}</span>
-                        </button>
-                    );
-                })}
+            {/* Filter Tabs (Live vs Scheduled + Room Type) */}
+            <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+                {/* Live / Scheduled Filters */}
+                <div className="flex items-center gap-1.5 p-1 bg-white border border-neutral-200/80 rounded-full text-xs font-semibold">
+                    <button
+                        type="button"
+                        onClick={() => setScheduleFilter('all')}
+                        className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
+                            scheduleFilter === 'all' ? 'bg-black text-white' : 'text-neutral-600 hover:text-black'
+                        }`}
+                    >
+                        All Rooms
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setScheduleFilter('live')}
+                        className={`px-4 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
+                            scheduleFilter === 'live' ? 'bg-black text-white' : 'text-neutral-600 hover:text-black'
+                        }`}
+                    >
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        Live Now
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setScheduleFilter('scheduled')}
+                        className={`px-4 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
+                            scheduleFilter === 'scheduled' ? 'bg-black text-white' : 'text-neutral-600 hover:text-black'
+                        }`}
+                    >
+                        <Calendar className="w-3.5 h-3.5" />
+                        Scheduled
+                    </button>
+                </div>
+
+                {/* Room Mode Filters */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
+                    {[
+                        { id: 'all', label: 'All Modes' },
+                        { id: 'video', label: 'Video', icon: Video },
+                        { id: 'audio', label: 'Audio', icon: Mic },
+                        { id: 'chat', label: 'Text Chat', icon: MessageSquare }
+                    ].map((tag) => {
+                        const Icon = tag.icon;
+                        const isSelected = selectedType === tag.id;
+                        return (
+                            <button
+                                key={tag.id}
+                                type="button"
+                                onClick={() => setSelectedType(tag.id)}
+                                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                                    isSelected
+                                        ? 'bg-neutral-800 text-white shadow-xs'
+                                        : 'bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-100'
+                                }`}
+                            >
+                                {Icon && <Icon className="w-3.5 h-3.5" />}
+                                <span>{tag.label}</span>
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
 
             {/* Rooms Grid */}
@@ -196,7 +247,7 @@ const RoomsDashboardPage = () => {
                 ) : filteredRooms.length === 0 ? (
                     <div className="bg-white border border-neutral-200/80 rounded-3xl p-12 text-center max-w-md mx-auto shadow-sm flex flex-col items-center gap-4">
                         <div>
-                            <h3 className="text-lg font-bold text-neutral-900">No Active Rooms Found</h3>
+                            <h3 className="text-lg font-bold text-neutral-900">No Rooms Found</h3>
                             <p className="text-xs text-neutral-500 mt-1">
                                 Be the first host to create a custom room for up to 100 participants!
                             </p>
@@ -217,17 +268,38 @@ const RoomsDashboardPage = () => {
                                 className="bg-white border border-neutral-200/80 hover:border-neutral-300 rounded-3xl p-6 shadow-sm hover:shadow-xl transition-all duration-200 flex flex-col justify-between group"
                             >
                                 <div>
-                                    {/* Top Row: Room Type Badge & Capacity */}
+                                    {/* Top Row: Room Type Badge & Schedule / Capacity */}
                                     <div className="flex items-center justify-between mb-4">
-                                        <span className="px-3 py-1 bg-neutral-100 border border-neutral-200 rounded-full text-[11px] font-bold text-neutral-800 uppercase tracking-wider">
-                                            {room.roomType === 'all' ? 'All Features' : room.roomType}
-                                        </span>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="px-3 py-1 bg-neutral-100 border border-neutral-200 rounded-full text-[11px] font-bold text-neutral-800 uppercase tracking-wider">
+                                                {room.roomType === 'all' ? 'All Features' : room.roomType}
+                                            </span>
+                                            {room.isScheduled && (
+                                                <span className="px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-full text-[10px] font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1">
+                                                    <Clock className="w-3 h-3" />
+                                                    Scheduled
+                                                </span>
+                                            )}
+                                        </div>
 
                                         <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded-full text-xs font-bold text-emerald-700">
                                             <Users className="w-3.5 h-3.5" />
                                             <span>{room.participantCount} / {room.maxParticipants}</span>
                                         </div>
                                     </div>
+
+                                    {/* Scheduled Date Display if Applicable */}
+                                    {room.isScheduled && room.scheduledAt && (
+                                        <div className="mb-2 px-3 py-1.5 bg-neutral-50 border border-neutral-200/60 rounded-xl text-[11px] text-neutral-600 flex items-center gap-1.5">
+                                            <Calendar className="w-3.5 h-3.5 text-neutral-500" />
+                                            <span>
+                                                {new Date(room.scheduledAt).toLocaleString(undefined, {
+                                                    dateStyle: 'medium',
+                                                    timeStyle: 'short'
+                                                })}
+                                            </span>
+                                        </div>
+                                    )}
 
                                     {/* Title & Description */}
                                     <h3 className="text-lg font-bold text-neutral-900 group-hover:text-black transition-colors line-clamp-1">
@@ -238,7 +310,7 @@ const RoomsDashboardPage = () => {
                                     </p>
                                 </div>
 
-                                {/* Bottom Row: Host Info & Join Button */}
+                                {/* Bottom Row: Host Info, Share Link & Join Button */}
                                 <div className="mt-6 pt-4 border-t border-neutral-100 flex items-center justify-between">
                                     <div className="flex items-center gap-2 min-w-0">
                                         <div className="w-7 h-7 rounded-full bg-neutral-200 text-neutral-800 font-bold text-xs flex items-center justify-center uppercase overflow-hidden shrink-0">
@@ -253,14 +325,25 @@ const RoomsDashboardPage = () => {
                                         </span>
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        onClick={() => handleJoinClick(room.roomId)}
-                                        className="px-5 py-2.5 bg-black hover:bg-neutral-800 active:scale-95 text-white text-xs font-bold rounded-full transition-all cursor-pointer shadow-md shadow-black/10 flex items-center gap-1"
-                                    >
-                                        <span>Join Room</span>
-                                        <ArrowRight className="w-3.5 h-3.5" />
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => handleCopyShareLink(e, room.roomId)}
+                                            className="p-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-full transition-all cursor-pointer"
+                                            title="Copy Share Link"
+                                        >
+                                            <Share2 className="w-3.5 h-3.5" />
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => handleJoinClick(room.roomId)}
+                                            className="px-4 py-2.5 bg-black hover:bg-neutral-800 active:scale-95 text-white text-xs font-bold rounded-full transition-all cursor-pointer shadow-md shadow-black/10 flex items-center gap-1"
+                                        >
+                                            <span>Join</span>
+                                            <ArrowRight className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -273,7 +356,11 @@ const RoomsDashboardPage = () => {
                 isOpen={createModalOpen}
                 onClose={() => setCreateModalOpen(false)}
                 onRoomCreated={(newRoom) => {
-                    navigate(`/home/rooms/${newRoom.roomId}`);
+                    if (newRoom.isScheduled) {
+                        fetchRooms();
+                    } else {
+                        navigate(`/home/rooms/${newRoom.roomId}`);
+                    }
                 }}
             />
 
@@ -286,7 +373,7 @@ const RoomsDashboardPage = () => {
                                 <Lock className="w-4 h-4 text-neutral-700" />
                                 Private Room Passcode
                             </h3>
-                            <button type="button" onClick={() => setPasscodeModalOpen(false)} className="text-neutral-400 hover:text-black">
+                            <button type="button" onClick={() => setPasscodeModalOpen(false)} className="text-neutral-400 hover:text-black cursor-pointer">
                                 <X className="w-4 h-4" />
                             </button>
                         </div>

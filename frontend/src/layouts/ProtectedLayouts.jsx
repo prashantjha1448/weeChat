@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Outlet, Navigate } from 'react-router';
+import { Outlet, Navigate, useLocation } from 'react-router';
 import { useSelector } from 'react-redux';
 import { useAuthentication } from '../hooks/auth.hooks';
 
@@ -7,6 +7,7 @@ const ProtectedLayouts = () => {
   const { isAuthenticated } = useSelector((state) => state.auth);
   const [loading, setLoading] = useState(true);
   const { getCurrentUserStatus } = useAuthentication();
+  const location = useLocation();
 
   useEffect(() => {
     const verifySession = async () => {
@@ -25,6 +26,9 @@ const ProtectedLayouts = () => {
   }
 
   if (!isAuthenticated) {
+    if (location.pathname && location.pathname !== '/login' && location.pathname !== '/') {
+      sessionStorage.setItem('redirect_after_auth', location.pathname + location.search);
+    }
     return <Navigate to="/login" replace />;
   }
 

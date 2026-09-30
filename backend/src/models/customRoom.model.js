@@ -59,6 +59,13 @@ const CustomRoomSchema = new mongoose.Schema({
         isSharingScreen: { type: Boolean, default: false },
         role: { type: String, enum: ['host', 'co-host', 'member'], default: 'member' }
     }],
+    isScheduled: {
+        type: Boolean,
+        default: false
+    },
+    scheduledAt: {
+        type: Date
+    },
     isActive: {
         type: Boolean,
         default: true,

@@ -17,7 +17,7 @@ const generateRoomId = () => {
  * Host creates custom room with title, capacity (up to 100), room type, passcode
  */
 export const createRoom = async (req, res) => {
-    const { title, description, maxParticipants, roomType, isPrivate, passcode } = req.body;
+    const { title, description, maxParticipants, roomType, isPrivate, passcode, isScheduled, scheduledAt } = req.body;
 
     if (!title) {
         throw new ApiError(400, 'Room title is required.');
@@ -39,6 +39,8 @@ export const createRoom = async (req, res) => {
         roomType: roomType || 'all',
         isPrivate: Boolean(isPrivate),
         passcode: isPrivate ? passcode : undefined,
+        isScheduled: Boolean(isScheduled),
+        scheduledAt: isScheduled && scheduledAt ? new Date(scheduledAt) : undefined,
         participants: [{
             userId: req.user._id,
             name: req.user.name,
@@ -76,6 +78,8 @@ export const getActiveRooms = async (req, res) => {
         maxParticipants: room.maxParticipants,
         participantCount: room.participants.length,
         host: room.hostId,
+        isScheduled: room.isScheduled,
+        scheduledAt: room.scheduledAt,
         createdAt: room.createdAt
     }));
 
