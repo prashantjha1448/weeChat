@@ -195,9 +195,6 @@ const RoomsDashboardPage = () => {
                     </div>
                 ) : filteredRooms.length === 0 ? (
                     <div className="bg-white border border-neutral-200/80 rounded-3xl p-12 text-center max-w-md mx-auto shadow-sm flex flex-col items-center gap-4">
-                        <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-400">
-                            <Sparkles className="w-8 h-8 stroke-[1.5]" />
-                        </div>
                         <div>
                             <h3 className="text-lg font-bold text-neutral-900">No Active Rooms Found</h3>
                             <p className="text-xs text-neutral-500 mt-1">
