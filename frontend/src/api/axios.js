@@ -1,11 +1,20 @@
 import axios from 'axios';
 
 const getBaseUrl = () => {
-    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-    if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
-        return 'https://weechat-api.onrender.com/api/';
+    let url = import.meta.env.VITE_API_URL;
+    if (!url) {
+        if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+            url = 'https://weechat-api.onrender.com/api/';
+        } else {
+            url = 'http://localhost:3002/api/';
+        }
     }
-    return 'http://localhost:3002/api/';
+    url = url.trim();
+    if (!url.endsWith('/')) url += '/';
+    if (!url.endsWith('api/')) {
+        url += 'api/';
+    }
+    return url;
 };
 
 const api = axios.create({

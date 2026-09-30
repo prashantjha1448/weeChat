@@ -83,7 +83,9 @@ app.use('/api/upload/', uploadLimiter);
 
 // 8. API Endpoint Registrations
 app.use('/api/auth/', authRoutes);
+app.use('/auth/', authRoutes);
 app.use('/api/auth/', verificationRoutes);
+app.use('/auth/', verificationRoutes);
 app.use('/api/upload/', uploadRoutes);
 app.use('/api/rooms/', customRoomRoutes);
 app.use('/api/sessions/', sessionRoutes);
