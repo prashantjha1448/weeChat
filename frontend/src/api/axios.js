@@ -2,7 +2,10 @@ import axios from 'axios';
 
 const getBaseUrl = () => {
     let url = import.meta.env.VITE_API_URL;
-    if (!url) {
+    if (url && url.includes(',')) {
+        url = url.split(',')[0];
+    }
+    if (!url || !url.trim()) {
         if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
             url = 'https://weechat-api.onrender.com/api/';
         } else {
