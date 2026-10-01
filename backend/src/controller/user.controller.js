@@ -11,8 +11,9 @@ import { env } from '../config/env.js';
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const googleAuthUser = async (req, res) => {
-    const { token, credential, idToken, accessToken } = req.body;
+    const { token, credential, idToken, accessToken, access_token } = req.body;
     const tokenToUse = credential || idToken || token;
+    const accToken = accessToken || access_token;
 
     let googleUser = null;
 
@@ -41,17 +42,22 @@ const googleAuthUser = async (req, res) => {
                     picture: decoded.picture
                 };
             } catch (e) {
-                throw new ApiError(400, 'Invalid Google ID token');
+                // Ignore and fall through to accToken
             }
         }
-    } else if (accessToken) {
-        const response = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`);
-        if (!response.ok) {
-            throw new ApiError(400, 'Failed to fetch Google user profile');
+    }
+    
+    if (!googleUser && accToken) {
+        try {
+            const response = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accToken}`, {
+                headers: { Authorization: `Bearer ${accToken}` }
+            });
+            if (response.ok) {
+                googleUser = await response.json();
+            }
+        } catch (err) {
+            console.warn('[GOOGLE USERINFO WARN]', err.message);
         }
-        googleUser = await response.json();
-    } else {
-        throw new ApiError(400, 'Google token or credential is required');
     }
 
     if (!googleUser || !googleUser.email) {

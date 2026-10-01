@@ -4,7 +4,7 @@ import { useAuthentication } from '../hooks/auth.hooks';
 
 const GoogleAuthButton = ({ label = "Continue with Google" }) => {
     const { onGoogleAuthSubmit } = useAuthentication();
-    const hasClientId = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID);
+    const hasClientId = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID || '688354520370-361b7iokn0jsar81er54lrvt6lmd4v56.apps.googleusercontent.com');
 
     const loginWithGoogle = useGoogleLogin({
         onSuccess: (tokenResponse) => onGoogleAuthSubmit(tokenResponse),
