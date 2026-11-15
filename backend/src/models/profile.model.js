@@ -29,12 +29,11 @@ const ProfileSchema = new mongoose.Schema({
         enum: ["male", "female", "other"]
     },
     heightCm: {
-        type: Number,
-        default: 165 // Height in centimeters (e.g., 165cm = ~5'5")
+        type: Number
     },
     country: {
         type: String,
-        default: "India",
+        default: "",
         trim: true,
         index: true
     },
