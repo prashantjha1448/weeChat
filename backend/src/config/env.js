@@ -14,6 +14,7 @@ const envSchema = z.object({
     COOKIE_DOMAIN: z.string().optional(),
     REDIS_URL: z.string().optional(),
     SENTRY_DSN: z.string().optional(),
+    GOOGLE_CLIENT_ID: z.string().optional().default(process.env.GOOGLE_CLIENT_ID || ''),
     TURN_URL: z.string().optional(),
     TURN_SECRET: z.string().optional(),
     TURN_USERNAME: z.string().optional()

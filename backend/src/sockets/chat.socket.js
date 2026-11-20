@@ -10,9 +10,16 @@ export const registerChatHandlers = (io, socket) => {
     socket.on('chat:send', async (data) => {
         const { roomId, sessionId, text } = data || {};
 
-        if (!text || !text.trim() || !roomId) return;
+        if (!text || typeof text !== 'string' || !text.trim() || !roomId) return;
 
-        const trimmedText = text.trim();
+        // Verify that socket is actually a member of this room
+        if (!socket.rooms.has(roomId)) {
+            console.warn(`[CHAT BLOCKED] User ${user.name} attempted to send message to unjoined room: ${roomId}`);
+            return;
+        }
+
+        // Cap message text length to 500 characters
+        const trimmedText = text.trim().slice(0, 500);
         const timestamp = new Date().toISOString();
 
         console.log(`💬 In-Call Chat from ${user.name} in Room ${roomId}: "${trimmedText}"`);

@@ -10,6 +10,7 @@ import { requestLogger } from './middleware/requestLogger.middleware.js';
 import { helmetSecurity } from './middleware/security.middleware.js';
 import { sanitizeInput } from './middleware/sanitizer.middleware.js';
 import { csrfProtection } from './middleware/csrf.middleware.js';
+import { checkBanned } from './middleware/checkBanned.middleware.js';
 import { apiLimiter, authLimiter, uploadLimiter } from './middleware/rateLimiter.middleware.js';
 
 // Route Imports
@@ -42,9 +43,21 @@ app.disable('x-powered-by');
 app.use(helmetSecurity);
 
 // 3. Exact CORS Origin Allowlist Configuration
+const isOriginAllowed = (origin) => {
+    if (!origin) return true;
+    if (env.parsedClientUrls && env.parsedClientUrls.includes(origin)) return true;
+    if (env.NODE_ENV !== 'production' && (origin.includes('localhost') || origin.includes('127.0.0.1'))) {
+        return true;
+    }
+    if (origin === 'https://wee-chat-virid.vercel.app' || /^https:\/\/wee-chat[a-z0-9-]*\.vercel\.app$/.test(origin)) {
+        return true;
+    }
+    return false;
+};
+
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin || env.parsedClientUrls.includes(origin) || origin.endsWith('.vercel.app') || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+        if (isOriginAllowed(origin)) {
             callback(null, true);
         } else {
             callback(new Error('CORS Access Denied: Origin not allowed'));
@@ -70,8 +83,9 @@ app.use(sanitizeInput);
 app.use('/', healthRoutes);
 app.use('/health', healthRoutes);
 
-// 7. CSRF Protection & Rate Limiters
+// 7. CSRF Protection, IP/Account Ban Check & Rate Limiters
 app.use('/api/', csrfProtection);
+app.use('/api/', checkBanned);
 app.use('/api/', apiLimiter);
 
 // Specific Auth & Upload Rate Limiters

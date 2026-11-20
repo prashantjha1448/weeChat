@@ -60,6 +60,7 @@ const RoomsDashboardPage = () => {
 
         try {
             await joinRoomApi(targetRoomId, passcodeInput.trim());
+            sessionStorage.setItem(`room_passcode_${targetRoomId.toUpperCase()}`, passcodeInput.trim());
             setPasscodeModalOpen(false);
             navigate(`/home/rooms/${targetRoomId}`);
         } catch (err) {

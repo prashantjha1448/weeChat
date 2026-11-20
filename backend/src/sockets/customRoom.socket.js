@@ -7,27 +7,43 @@ import CustomRoomModel from '../models/customRoom.model.js';
 export const registerCustomRoomHandlers = (io, socket) => {
     const user = socket.user;
 
-    // 1. Join Room
-    socket.on('room:join', async ({ roomId }) => {
+    // 1. Join Room (Secured with Passcode Verification & Capacity Checks)
+    socket.on('room:join', async ({ roomId, passcode }) => {
         if (!roomId) return;
-        const channelName = `custom_room_${roomId.toUpperCase()}`;
-        socket.join(channelName);
-        socket.currentRoomId = roomId.toUpperCase();
+        const cleanRoomId = String(roomId).trim().toUpperCase();
 
         try {
-            const room = await CustomRoomModel.findOne({ roomId: roomId.toUpperCase(), isActive: true });
-            if (!room) return;
+            const room = await CustomRoomModel.findOne({ roomId: cleanRoomId, isActive: true }).select('+passcode');
+            if (!room) {
+                socket.emit('room:error', { message: 'Room not found or has already ended.' });
+                return;
+            }
 
-            // Check if already in participants
+            const isHost = String(room.hostId) === String(user._id);
             const existingIdx = room.participants.findIndex(p => String(p.userId) === String(user._id));
-            if (existingIdx !== -1) {
-                room.participants[existingIdx].socketId = socket.id;
-            } else {
-                if (room.participants.length >= room.maxParticipants) {
-                    socket.emit('room:error', { message: 'Room is full' });
+            const isAlreadyParticipant = existingIdx !== -1;
+
+            // Enforce passcode protection for private rooms
+            if (room.isPrivate && !isHost && !isAlreadyParticipant) {
+                if (!passcode || passcode !== room.passcode) {
+                    socket.emit('room:error', { message: 'Access Denied: Invalid or missing room passcode.' });
                     return;
                 }
-                const isHost = String(room.hostId) === String(user._id);
+            }
+
+            // Enforce room capacity limits (up to maxParticipants, max 100)
+            if (!isAlreadyParticipant && room.participants.length >= room.maxParticipants) {
+                socket.emit('room:error', { message: `Room is full. Maximum limit of ${room.maxParticipants} participants reached.` });
+                return;
+            }
+
+            const channelName = `custom_room_${cleanRoomId}`;
+            socket.join(channelName);
+            socket.currentRoomId = cleanRoomId;
+
+            if (isAlreadyParticipant) {
+                room.participants[existingIdx].socketId = socket.id;
+            } else {
                 room.participants.push({
                     userId: user._id,
                     name: user.name,
@@ -57,9 +73,10 @@ export const registerCustomRoomHandlers = (io, socket) => {
                 avatar: user.avatar || ''
             });
 
-            console.log(`👤 User ${user.name} joined Custom Room ${roomId.toUpperCase()} (Socket: ${socket.id})`);
+            console.log(`👤 User ${user.name} joined Custom Room ${cleanRoomId} (Socket: ${socket.id})`);
         } catch (err) {
             console.error('[ROOM JOIN SOCKET ERROR]', err);
+            socket.emit('room:error', { message: 'Failed to join room. Please try again.' });
         }
     });
 
@@ -118,17 +135,21 @@ export const registerCustomRoomHandlers = (io, socket) => {
         }
     });
 
-    // 6. Group Text Messaging
+    // 6. Group Text Messaging (Membership check & 500-char cap)
     socket.on('room:send-message', ({ roomId, message }) => {
-        if (!roomId || !message || !message.trim()) return;
-        const channelName = `custom_room_${roomId.toUpperCase()}`;
+        if (!roomId || !message || typeof message !== 'string' || !message.trim()) return;
+        const cleanRoomId = roomId.trim().toUpperCase();
+        if (socket.currentRoomId !== cleanRoomId) return; // Verify sender belongs to room
+
+        const channelName = `custom_room_${cleanRoomId}`;
+        const sanitizedText = message.trim().slice(0, 500);
 
         const msgObj = {
             id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
             senderId: user._id,
             senderName: user.name,
             senderAvatar: user.avatar || '',
-            text: message.trim(),
+            text: sanitizedText,
             timestamp: new Date().toISOString()
         };
 

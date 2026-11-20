@@ -15,58 +15,102 @@ const googleAuthUser = async (req, res) => {
     const tokenToUse = credential || idToken || token;
     const accToken = accessToken || access_token;
 
+    if (!tokenToUse && !accToken) {
+        throw new ApiError(400, 'Google token is required for authentication');
+    }
+
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    if (!clientId) {
+        throw new ApiError(500, 'Google Client ID is not configured on server');
+    }
+
     let googleUser = null;
 
+    // 1. Verify Google ID Token cryptographically if provided
     if (tokenToUse) {
         try {
             const ticket = await googleClient.verifyIdToken({
                 idToken: tokenToUse,
-                audience: process.env.GOOGLE_CLIENT_ID
+                audience: clientId
             });
             const payload = ticket.getPayload();
-            googleUser = {
-                sub: payload.sub,
-                email: payload.email,
-                name: payload.name,
-                picture: payload.picture
-            };
-        } catch (err) {
-            console.warn('[GOOGLE AUTH VERIFY WARN]', err.message);
-            try {
-                const base64Payload = tokenToUse.split('.')[1];
-                const decoded = JSON.parse(Buffer.from(base64Payload, 'base64').toString());
+
+            if (payload && payload.email) {
+                if (payload.email_verified === false) {
+                    throw new ApiError(403, 'Google account email is not verified by Google');
+                }
                 googleUser = {
-                    sub: decoded.sub,
-                    email: decoded.email,
-                    name: decoded.name,
-                    picture: decoded.picture
+                    sub: payload.sub,
+                    email: payload.email.toLowerCase().trim(),
+                    name: payload.name || 'Google User',
+                    picture: payload.picture || ''
                 };
-            } catch (e) {
-                // Ignore and fall through to accToken
+            }
+        } catch (err) {
+            console.warn('[GOOGLE ID_TOKEN VERIFICATION FAILED]', err.message);
+            if (!accToken) {
+                throw new ApiError(401, 'Invalid or expired Google authentication credential');
             }
         }
     }
-    
+
+    // 2. If ID Token was not provided or failed, verify OAuth2 access token with Google endpoints
     if (!googleUser && accToken) {
         try {
-            const response = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accToken}`, {
+            // First verify token info with Google to validate audience & prevent token substitution
+            const tokenInfoRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(accToken)}`);
+            if (!tokenInfoRes.ok) {
+                throw new ApiError(401, 'Invalid or expired Google access token');
+            }
+            const tokenInfo = await tokenInfoRes.json();
+
+            // Validate that token was issued for our Google Client ID (Confused Deputy defense)
+            if (tokenInfo.aud && tokenInfo.aud !== clientId && tokenInfo.issued_to !== clientId) {
+                throw new ApiError(401, 'Google token audience mismatch');
+            }
+
+            // Fetch verified profile from userinfo
+            const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
                 headers: { Authorization: `Bearer ${accToken}` }
             });
-            if (response.ok) {
-                googleUser = await response.json();
+
+            if (!userInfoRes.ok) {
+                throw new ApiError(401, 'Failed to fetch verified user profile from Google');
+            }
+
+            const userInfo = await userInfoRes.json();
+            if (userInfo && userInfo.email) {
+                if (userInfo.email_verified === false) {
+                    throw new ApiError(403, 'Google account email is not verified by Google');
+                }
+                googleUser = {
+                    sub: userInfo.sub,
+                    email: userInfo.email.toLowerCase().trim(),
+                    name: userInfo.name || 'Google User',
+                    picture: userInfo.picture || ''
+                };
             }
         } catch (err) {
-            console.warn('[GOOGLE USERINFO WARN]', err.message);
+            if (err instanceof ApiError) throw err;
+            console.warn('[GOOGLE ACCESS_TOKEN VERIFICATION FAILED]', err.message);
+            throw new ApiError(401, 'Google access token verification failed');
         }
     }
 
-    if (!googleUser || !googleUser.email) {
-        throw new ApiError(400, 'Could not retrieve user email from Google');
+    // Strict validation: Reject if user information could not be cryptographically verified
+    if (!googleUser || !googleUser.email || !googleUser.sub) {
+        throw new ApiError(401, 'Google authentication failed: Could not verify user identity');
     }
 
+    // 3. Check for existing user by googleId or verified email
     let user = await UserModel.findOne({
-        $or: [{ googleId: googleUser.sub }, { email: googleUser.email.toLowerCase() }]
+        $or: [{ googleId: googleUser.sub }, { email: googleUser.email }]
     });
+
+    // Check account ban status
+    if (user && user.isBanned) {
+        throw new ApiError(403, 'Your account has been banned due to Terms of Service violations.');
+    }
 
     if (!user) {
         let baseUsername = (googleUser.email.split('@')[0] || 'user').replace(/[^a-zA-Z0-9_]/g, '');
@@ -79,8 +123,8 @@ const googleAuthUser = async (req, res) => {
         }
 
         user = await UserModel.create({
-            name: googleUser.name || 'Google User',
-            email: googleUser.email.toLowerCase(),
+            name: googleUser.name,
+            email: googleUser.email,
             username,
             googleId: googleUser.sub,
             avatar: googleUser.picture,
@@ -88,14 +132,15 @@ const googleAuthUser = async (req, res) => {
             isVerified: true
         });
     } else {
-        if (!user.googleId || !user.avatar || !user.isVerified) {
+        const updateFields = {};
+        if (!user.googleId) updateFields.googleId = googleUser.sub;
+        if (!user.avatar && googleUser.picture) updateFields.avatar = googleUser.picture;
+        if (!user.isVerified) updateFields.isVerified = true;
+
+        if (Object.keys(updateFields).length > 0) {
             user = await UserModel.findByIdAndUpdate(
                 user._id,
-                {
-                    googleId: user.googleId || googleUser.sub,
-                    avatar: user.avatar || googleUser.picture,
-                    isVerified: true
-                },
+                updateFields,
                 { new: true }
             );
         }

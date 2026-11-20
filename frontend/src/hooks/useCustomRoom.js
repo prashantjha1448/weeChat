@@ -124,7 +124,10 @@ export const useCustomRoom = (roomId, currentUser) => {
         socketRef.current = socket;
 
         const joinCurrentRoom = () => {
-            socket.emit('room:join', { roomId });
+            const storedPasscode = typeof window !== 'undefined'
+                ? (sessionStorage.getItem(`room_passcode_${roomId?.toUpperCase()}`) || '')
+                : '';
+            socket.emit('room:join', { roomId, passcode: storedPasscode });
         };
 
         if (socket.connected) {
@@ -227,6 +230,12 @@ export const useCustomRoom = (roomId, currentUser) => {
 
         socket.on('room:ended', ({ message }) => {
             toast.error(message || 'Room ended by host');
+            setRoomEnded(true);
+        });
+
+        // 10. Room Authorization & Capacity Errors
+        socket.on('room:error', ({ message }) => {
+            toast.error(message || 'Failed to join room');
             setRoomEnded(true);
         });
 
