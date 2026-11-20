@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { 
-    Video, Users, ShieldCheck, MapPin, Sliders, 
-    Lock, Zap, CheckCircle2, MessageSquare, Mic, MonitorUp, ArrowRight 
+    Video, Users, ShieldCheck, MapPin, 
+    Lock, Zap, CheckCircle2, MessageSquare, Mic, 
+    ArrowRight, ChevronDown, Sparkles, Globe2, HeartHandshake, EyeOff
 } from 'lucide-react';
 
 const Publicpage = () => {
     const navigate = useNavigate();
+    const [openFaq, setOpenFaq] = useState(null);
 
     const scrollToSection = (id) => {
         const element = document.getElementById(id);
@@ -15,27 +17,66 @@ const Publicpage = () => {
         }
     };
 
+    const toggleFaq = (index) => {
+        setOpenFaq(openFaq === index ? null : index);
+    };
+
+    const faqs = [
+        {
+            q: "What is weeChat and how does random video matching work?",
+            a: "weeChat is a next-generation random video chat platform and Omegle alternative. When you click 'Start 1-on-1 Matchmaking', our ultra-fast matchmaking engine instantly pairs you with another active user anywhere in the world. Calls are connected directly peer-to-peer using WebRTC technology for sub-150ms latency and crystal-clear video."
+        },
+        {
+            q: "Is weeChat really 100% free with no hidden fees?",
+            a: "Yes! weeChat is completely free to use. You can engage in unlimited 1-on-1 random video calls, text chats, and join group lounges for up to 100 participants without any subscription or payment requirement."
+        },
+        {
+            q: "Do I need to download an application on mobile or desktop?",
+            a: "No downloads or app installs are needed. weeChat runs natively in your browser—including Safari on iOS, Chrome on Android, and all desktop browsers (macOS, Windows, Linux). Simply open the URL and start talking."
+        },
+        {
+            q: "How does weeChat protect user privacy and safety?",
+            a: "All 1-on-1 calls use encrypted WebRTC peer-to-peer connections (DTLS/SRTP), meaning your video and audio feeds are not routed through or recorded on external media servers. Additionally, weeChat provides instant one-tap user reporting, skip controls, and active community moderation to maintain a safe and respectful environment."
+        },
+        {
+            q: "Can I filter video matches by location or specific interests?",
+            a: "Yes. In your weeChat profile settings, you can specify location preferences (such as city, state, or pincode) as well as custom interest tags like #gaming, #coding, or #music to connect with like-minded individuals."
+        },
+        {
+            q: "What are Custom Rooms and how many participants can join?",
+            a: "Custom Rooms allow you to host or join public and private group lounges for up to 100 participants. Rooms support multi-person video grid feeds, audio stages, real-time group text messaging, and screen sharing."
+        }
+    ];
+
     return (
         <div className="min-h-screen bg-[#F5F5F7] text-[#1D1D1F] font-sans antialiased selection:bg-[#1D1D1F] selection:text-white">
             
-            {/* 1. Apple Light Glass Header */}
+            {/* 1. STICKY APPLE GLASS NAVBAR */}
             <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/80 border-b border-neutral-200/80">
-                <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+                <nav className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between" aria-label="Main Navigation">
                     
-                    {/* Minimalist weeChat Logo */}
-                    <div className="flex items-center gap-2 cursor-pointer group" onClick={() => navigate('/')}>
-                        <img src="/weechat-logo.png" alt="weeChat Logo" className="w-6 h-6 rounded-lg object-cover group-hover:scale-105 transition-transform" />
+                    {/* Minimalist weeChat Brand Logo */}
+                    <div 
+                        className="flex items-center gap-2 cursor-pointer group" 
+                        onClick={() => navigate('/')}
+                    >
+                        <img 
+                            src="/weechat-logo.png" 
+                            alt="weeChat Logo - Free Random Video Chat" 
+                            className="w-6 h-6 rounded-lg object-cover group-hover:scale-105 transition-transform" 
+                        />
                         <span className="text-sm font-semibold tracking-tight text-[#1D1D1F]">
                             weeChat
                         </span>
                     </div>
 
-                    {/* Nav Links */}
+                    {/* Navigation Anchor Links (SEO Optimized Anchor Text) */}
                     <div className="hidden md:flex items-center gap-8 text-xs font-medium text-[#86868B]">
-                        <button onClick={() => scrollToSection('service-messaging')} className="hover:text-[#1D1D1F] transition-colors cursor-pointer">Messaging</button>
-                        <button onClick={() => scrollToSection('service-video')} className="hover:text-[#1D1D1F] transition-colors cursor-pointer">1-on-1 Video</button>
-                        <button onClick={() => scrollToSection('service-rooms')} className="hover:text-[#1D1D1F] transition-colors cursor-pointer">Custom Rooms (100 Max)</button>
-                        <button onClick={() => scrollToSection('service-location')} className="hover:text-[#1D1D1F] transition-colors cursor-pointer">Location Matching</button>
+                        <button onClick={() => scrollToSection('features')} className="hover:text-[#1D1D1F] transition-colors cursor-pointer">Features</button>
+                        <button onClick={() => scrollToSection('service-video')} className="hover:text-[#1D1D1F] transition-colors cursor-pointer">Random Video</button>
+                        <button onClick={() => scrollToSection('service-rooms')} className="hover:text-[#1D1D1F] transition-colors cursor-pointer">Group Rooms (100 Max)</button>
+                        <button onClick={() => scrollToSection('comparison')} className="hover:text-[#1D1D1F] transition-colors cursor-pointer">Why weeChat</button>
+                        <button onClick={() => scrollToSection('faq')} className="hover:text-[#1D1D1F] transition-colors cursor-pointer">FAQ</button>
                     </div>
 
                     {/* Nav Actions */}
@@ -50,392 +91,449 @@ const Publicpage = () => {
                             onClick={() => navigate('/register')}
                             className="text-xs font-semibold bg-[#1D1D1F] text-white px-4 py-1.5 rounded-full hover:bg-neutral-800 transition-all active:scale-95 cursor-pointer shadow-xs"
                         >
-                            Get Started
+                            Start Chatting
                         </button>
                     </div>
 
-                </div>
+                </nav>
             </header>
 
-            {/* ------------------------------------------------------------- */}
-            {/* HERO SECTION (APPLE THEME) */}
-            {/* ------------------------------------------------------------- */}
-            <section className="min-h-screen pt-28 pb-16 px-6 max-w-6xl mx-auto flex flex-col justify-center items-center text-center relative">
-                
-                {/* Main Apple Light Headline */}
-                <h1 className="text-5xl sm:text-7xl md:text-8xl font-bold tracking-tight text-[#1D1D1F] mb-8 leading-[1.05]">
-                    Everything connected. <br />
-                    <span className="text-[#86868B] font-normal">Built for speed.</span>
-                </h1>
-
-                {/* Subtitle */}
-                <p className="text-[#86868B] text-base sm:text-xl max-w-2xl mx-auto mb-12 leading-relaxed font-normal">
-                    weeChat delivers a unified suite of real-time communication tools—engineered with zero latency, bank-grade encryption, and seamless Apple light design.
-                </p>
-
-                {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <button
-                        onClick={() => scrollToSection('service-messaging')}
-                        className="px-8 py-3.5 bg-[#1D1D1F] text-white font-semibold rounded-full hover:bg-neutral-800 transition-all text-sm active:scale-95 cursor-pointer shadow-lg shadow-neutral-300"
-                    >
-                        Explore Services ↓
-                    </button>
-                    <button
-                        onClick={() => navigate('/register')}
-                        className="px-8 py-3.5 bg-white border border-neutral-300 text-[#1D1D1F] hover:bg-neutral-100 transition-all text-sm font-semibold rounded-full active:scale-95 cursor-pointer shadow-xs"
-                    >
-                        Create Free Account
-                    </button>
-                </div>
-
-            </section>
-
-            {/* ------------------------------------------------------------- */}
-            {/* SERVICE 01: REALTIME MESSAGING */}
-            {/* ------------------------------------------------------------- */}
-            <section id="service-messaging" className="min-h-screen py-24 px-6 max-w-6xl mx-auto flex flex-col justify-center border-t border-neutral-200">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <main>
+                {/* ------------------------------------------------------------- */}
+                {/* HERO SECTION: TARGET KEYWORD-RICH TITLE & H1 */}
+                {/* ------------------------------------------------------------- */}
+                <section className="pt-32 pb-20 px-6 max-w-6xl mx-auto flex flex-col justify-center items-center text-center relative">
                     
-                    {/* Text Column */}
-                    <div className="lg:col-span-5 text-left">
-                        <span className="text-xs uppercase tracking-widest text-[#86868B] font-bold mb-3 block">
-                            Service 01 / Realtime Messaging
-                        </span>
-                        <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#1D1D1F] mb-6 leading-tight">
-                            Ultra-Fast Chat Engine.
-                        </h2>
-                        <p className="text-[#86868B] text-sm sm:text-base leading-relaxed mb-8 font-normal">
-                            Built on direct WebSocket connections, weeChat messaging delivers your conversations in real time with zero lag. Features live typing indicators, delivery status, presence updates, and complete privacy.
-                        </p>
-                        
-                        <div className="space-y-3 mb-8">
-                            <div className="flex items-center gap-3 text-xs text-neutral-700 font-medium">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#1D1D1F]" />
-                                <span>Sub-millisecond latency socket connection</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-xs text-neutral-700 font-medium">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#1D1D1F]" />
-                                <span>End-to-End message encryption & presence</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-xs text-neutral-700 font-medium">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#1D1D1F]" />
-                                <span>Rich media embeds & in-room group chat</span>
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={() => navigate('/register')}
-                            className="text-xs font-bold text-[#1D1D1F] hover:text-neutral-600 transition-colors flex items-center gap-2 cursor-pointer"
-                        >
-                            <span>Try Messaging Free</span>
-                            <span>→</span>
-                        </button>
+                    {/* Live Online Badge Pill */}
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 text-xs font-semibold mb-6 animate-in fade-in">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span>#1 Free Omegle Alternative • 100% Free WebRTC Peer-to-Peer</span>
                     </div>
 
-                    {/* Apple Light Style SVG Graphic Illustration */}
-                    <div className="lg:col-span-7 flex justify-center">
-                        <div className="w-full max-w-lg p-6 rounded-3xl bg-white border border-neutral-200/90 shadow-2xl shadow-neutral-200/60 relative overflow-hidden group hover:border-neutral-300 transition-all">
-                            
-                            {/* Window Header */}
-                            <div className="flex items-center justify-between pb-4 mb-4 border-b border-neutral-100">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-neutral-300" />
-                                    <div className="w-3 h-3 rounded-full bg-neutral-300" />
-                                    <div className="w-3 h-3 rounded-full bg-neutral-300" />
-                                </div>
-                                <span className="text-[10px] uppercase font-mono tracking-widest text-[#86868B] font-semibold">Direct Chat Engine</span>
-                            </div>
+                    {/* Primary H1 Heading for Google Ranking */}
+                    <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-[#1D1D1F] mb-6 leading-[1.08]">
+                        Free Random Video Chat. <br />
+                        <span className="text-[#86868B] font-normal">Talk to Strangers Worldwide.</span>
+                    </h1>
 
-                            {/* SVG UI Mockup */}
-                            <svg className="w-full h-auto" viewBox="0 0 400 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                {/* Receiver Bubble */}
-                                <rect x="20" y="20" width="220" height="48" rx="14" fill="#F3F4F6" />
-                                <rect x="36" y="34" width="140" height="8" rx="4" fill="#9CA3AF" />
-                                <rect x="36" y="48" width="90" height="6" rx="3" fill="#D1D5DB" />
-
-                                {/* Sender Bubble */}
-                                <rect x="160" y="84" width="220" height="56" rx="14" fill="#0071E3" />
-                                <rect x="176" y="98" width="160" height="8" rx="4" fill="#FFFFFF" />
-                                <rect x="176" y="114" width="110" height="6" rx="3" fill="#BFDBFE" />
-                                <circle cx="362" cy="125" r="4" fill="#10B981" />
-
-                                {/* Typing Bubble */}
-                                <rect x="20" y="156" width="90" height="40" rx="14" fill="#F3F4F6" />
-                                <circle cx="45" cy="176" r="4" fill="#9CA3AF" className="animate-pulse" />
-                                <circle cx="65" cy="176" r="4" fill="#6B7280" className="animate-pulse" />
-                                <circle cx="85" cy="176" r="4" fill="#111827" className="animate-pulse" />
-                            </svg>
-
-                            <div className="mt-4 pt-3 border-t border-neutral-100 flex justify-between items-center text-[10px] text-[#86868B] font-mono font-medium">
-                                <span>Status: Connected</span>
-                                <span>WebSocket SSL Secured</span>
-                            </div>
-
-                        </div>
-                    </div>
-
-                </div>
-            </section>
-
-            {/* ------------------------------------------------------------- */}
-            {/* SERVICE 02: 1-ON-1 RANDOM VIDEO MATCHING */}
-            {/* ------------------------------------------------------------- */}
-            <section id="service-video" className="min-h-screen py-24 px-6 max-w-6xl mx-auto flex flex-col justify-center border-t border-neutral-200">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-                    
-                    {/* SVG Graphic (Left on desktop) */}
-                    <div className="lg:col-span-7 flex justify-center order-2 lg:order-1">
-                        <div className="w-full max-w-lg p-6 rounded-3xl bg-white border border-neutral-200/90 shadow-2xl shadow-neutral-200/60 relative overflow-hidden group hover:border-neutral-300 transition-all">
-                            
-                            <div className="flex items-center justify-between pb-4 mb-4 border-b border-neutral-100">
-                                <div className="flex items-center gap-2">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                                    <span className="text-xs font-semibold text-[#1D1D1F]">1-on-1 WebRTC Video Session</span>
-                                </div>
-                                <span className="text-[10px] uppercase font-mono text-[#86868B] font-semibold">HD 1080P</span>
-                            </div>
-
-                            <svg className="w-full h-auto" viewBox="0 0 400 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <rect x="10" y="10" width="380" height="220" rx="16" fill="#F8FAFC" stroke="#E2E8F0" strokeWidth="2" />
-                                <circle cx="200" cy="100" r="36" fill="#E2E8F0" stroke="#CBD5E1" strokeWidth="2" />
-                                <path d="M185 145 C185 125, 215 125, 215 145" stroke="#64748B" strokeWidth="3" strokeLinecap="round" />
-
-                                <rect x="280" y="25" width="95" height="65" rx="10" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="2" />
-                                <circle cx="327" cy="50" r="10" fill="#E2E8F0" />
-
-                                <rect x="120" y="195" width="160" height="28" rx="14" fill="#FFFFFF" stroke="#E2E8F0" />
-                                <circle cx="150" cy="209" r="7" fill="#CBD5E1" />
-                                <circle cx="200" cy="209" r="9" fill="#EF4444" />
-                                <circle cx="250" cy="209" r="7" fill="#CBD5E1" />
-                            </svg>
-
-                        </div>
-                    </div>
-
-                    {/* Text Column */}
-                    <div className="lg:col-span-5 text-left order-1 lg:order-2">
-                        <span className="text-xs uppercase tracking-widest text-[#86868B] font-bold mb-3 block">
-                            Service 02 / 1-on-1 Video Chat
-                        </span>
-                        <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#1D1D1F] mb-6 leading-tight">
-                            Instant Video Match.
-                        </h2>
-                        <p className="text-[#86868B] text-sm sm:text-base leading-relaxed mb-8 font-normal">
-                            High-definition 1-on-1 video calling powered by WebRTC technology. Connect instantly with verified users with noise suppression, adaptive bitrates, and hardware acceleration.
-                        </p>
-
-                        <div className="space-y-3 mb-8">
-                            <div className="flex items-center gap-3 text-xs text-neutral-700 font-medium">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#1D1D1F]" />
-                                <span>WebRTC Peer-to-Peer video infrastructure</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-xs text-neutral-700 font-medium">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#1D1D1F]" />
-                                <span>Instant queueing & candidate skip controls</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-xs text-neutral-700 font-medium">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#1D1D1F]" />
-                                <span>Real-time in-call text chat overlay</span>
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={() => navigate('/register')}
-                            className="text-xs font-bold text-[#1D1D1F] hover:text-neutral-600 transition-colors flex items-center gap-2 cursor-pointer"
-                        >
-                            <span>Explore 1-on-1 Match</span>
-                            <span>→</span>
-                        </button>
-                    </div>
-
-                </div>
-            </section>
-
-            {/* ------------------------------------------------------------- */}
-            {/* SERVICE 03: CUSTOM ROOMS HUB (UP TO 100 PEOPLE) */}
-            {/* ------------------------------------------------------------- */}
-            <section id="service-rooms" className="min-h-screen py-24 px-6 max-w-6xl mx-auto flex flex-col justify-center border-t border-neutral-200">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-                    
-                    {/* Text Column */}
-                    <div className="lg:col-span-5 text-left">
-                        <span className="text-xs uppercase tracking-widest text-[#86868B] font-bold mb-3 block">
-                            Service 03 / Custom Rooms Hub
-                        </span>
-                        <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#1D1D1F] mb-6 leading-tight">
-                            Rooms for Up to 100 People.
-                        </h2>
-                        <p className="text-[#86868B] text-sm sm:text-base leading-relaxed mb-8 font-normal">
-                            Host public or private custom rooms for community discussions, audio lounges, or multi-participant video calls with screen sharing capabilities.
-                        </p>
-
-                        <div className="space-y-3 mb-8">
-                            <div className="flex items-center gap-3 text-xs text-neutral-700 font-medium">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#1D1D1F]" />
-                                <span>Video Call Grid, Audio Lounges & Text Chat</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-xs text-neutral-700 font-medium">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#1D1D1F]" />
-                                <span>Screen sharing & in-room group chat</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-xs text-neutral-700 font-medium">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#1D1D1F]" />
-                                <span>Passcode protection for private custom rooms</span>
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={() => navigate('/register')}
-                            className="text-xs font-bold text-[#1D1D1F] hover:text-neutral-600 transition-colors flex items-center gap-2 cursor-pointer"
-                        >
-                            <span>Launch Custom Room</span>
-                            <span>→</span>
-                        </button>
-                    </div>
-
-                    {/* SVG Multi-Participant Room Graphic */}
-                    <div className="lg:col-span-7 flex justify-center">
-                        <div className="w-full max-w-lg p-6 rounded-3xl bg-white border border-neutral-200/90 shadow-2xl shadow-neutral-200/60 relative overflow-hidden group hover:border-neutral-300 transition-all">
-                            
-                            <div className="flex items-center justify-between pb-4 mb-4 border-b border-neutral-100">
-                                <div className="flex items-center gap-2">
-                                    <Users className="w-4 h-4 text-neutral-700" />
-                                    <span className="text-xs font-semibold text-[#1D1D1F]">weeChat Multi-Participant Lounge</span>
-                                </div>
-                                <span className="text-[10px] font-mono text-emerald-600 font-bold">● 48 / 100 Online</span>
-                            </div>
-
-                            <svg className="w-full h-auto" viewBox="0 0 400 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <rect x="15" y="15" width="115" height="85" rx="12" fill="#F8FAFC" stroke="#E2E8F0" />
-                                <circle cx="72" cy="48" r="15" fill="#E2E8F0" />
-                                <text x="48" y="82" fill="#1D1D1F" fontSize="9" fontWeight="bold" fontFamily="sans-serif">Host Alex</text>
-
-                                <rect x="142" y="15" width="115" height="85" rx="12" fill="#F8FAFC" stroke="#E2E8F0" />
-                                <circle cx="200" cy="48" r="15" fill="#E2E8F0" />
-                                <text x="178" y="82" fill="#1D1D1F" fontSize="9" fontWeight="bold" fontFamily="sans-serif">Sarah</text>
-
-                                <rect x="270" y="15" width="115" height="85" rx="12" fill="#F8FAFC" stroke="#E2E8F0" />
-                                <circle cx="327" cy="48" r="15" fill="#E2E8F0" />
-                                <text x="306" y="82" fill="#1D1D1F" fontSize="9" fontWeight="bold" fontFamily="sans-serif">Rahul</text>
-
-                                <rect x="15" y="112" width="370" height="92" rx="12" fill="#1D1D1F" />
-                                <text x="145" y="152" fill="#FFFFFF" fontSize="11" fontWeight="bold" fontFamily="sans-serif">💻 Screen Share Active</text>
-                                <text x="130" y="172" fill="#86868B" fontSize="9" fontFamily="sans-serif">Multi-participant audio + video + chat</text>
-                            </svg>
-
-                        </div>
-                    </div>
-
-                </div>
-            </section>
-
-            {/* ------------------------------------------------------------- */}
-            {/* SERVICE 04: PINCODE, GPS & CUSTOM TAG PREFERENCES */}
-            {/* ------------------------------------------------------------- */}
-            <section id="service-location" className="min-h-screen py-24 px-6 max-w-6xl mx-auto flex flex-col justify-center border-t border-neutral-200">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-                    
-                    {/* SVG Graphic (Left on desktop) */}
-                    <div className="lg:col-span-7 flex justify-center order-2 lg:order-1">
-                        <div className="w-full max-w-lg p-6 rounded-3xl bg-white border border-neutral-200/90 shadow-2xl shadow-neutral-200/60 relative overflow-hidden group hover:border-neutral-300 transition-all">
-                            
-                            <div className="flex items-center justify-between pb-4 mb-4 border-b border-neutral-100">
-                                <span className="text-xs uppercase font-mono tracking-widest text-[#86868B] font-semibold">Match Preferences Card</span>
-                                <span className="text-[10px] font-mono text-emerald-600 font-bold">● DB Saved</span>
-                            </div>
-
-                            <svg className="w-full h-auto" viewBox="0 0 400 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <rect x="20" y="20" width="360" height="180" rx="16" fill="#F8FAFC" stroke="#E2E8F0" strokeWidth="2" />
-                                
-                                <rect x="40" y="40" width="155" height="42" rx="10" fill="#FFFFFF" stroke="#CBD5E1" />
-                                <text x="52" y="58" fill="#86868B" fontSize="9" fontFamily="sans-serif">INTERESTED IN</text>
-                                <text x="52" y="73" fill="#1D1D1F" fontSize="11" fontWeight="bold" fontFamily="sans-serif">Anyone (All Genders)</text>
-
-                                <rect x="205" y="40" width="155" height="42" rx="10" fill="#FFFFFF" stroke="#CBD5E1" />
-                                <text x="217" y="58" fill="#86868B" fontSize="9" fontFamily="sans-serif">AGE RANGE</text>
-                                <text x="217" y="73" fill="#1D1D1F" fontSize="11" fontWeight="bold" fontFamily="sans-serif">18 – 60 years</text>
-
-                                <rect x="40" y="95" width="320" height="42" rx="10" fill="#FFFFFF" stroke="#CBD5E1" />
-                                <text x="52" y="113" fill="#86868B" fontSize="9" fontFamily="sans-serif">LOCATION MATCHING</text>
-                                <text x="52" y="128" fill="#1D1D1F" fontSize="11" fontWeight="bold" fontFamily="sans-serif">📍 Mumbai (Pincode: 400001)</text>
-
-                                <rect x="40" y="150" width="90" height="26" rx="13" fill="#1D1D1F" />
-                                <text x="55" y="167" fill="#FFFFFF" fontSize="10" fontWeight="bold" fontFamily="sans-serif">#Coding</text>
-
-                                <rect x="138" y="150" width="90" height="26" rx="13" fill="#1D1D1F" />
-                                <text x="153" y="167" fill="#FFFFFF" fontSize="10" fontWeight="bold" fontFamily="sans-serif">#Gaming</text>
-
-                                <rect x="236" y="150" width="90" height="26" rx="13" fill="#1D1D1F" />
-                                <text x="251" y="167" fill="#FFFFFF" fontSize="10" fontWeight="bold" fontFamily="sans-serif">#Music</text>
-                            </svg>
-
-                        </div>
-                    </div>
-
-                    {/* Text Column */}
-                    <div className="lg:col-span-5 text-left order-1 lg:order-2">
-                        <span className="text-xs uppercase tracking-widest text-[#86868B] font-bold mb-3 block">
-                            Service 04 / Smart Preferences
-                        </span>
-                        <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#1D1D1F] mb-6 leading-tight">
-                            Pincode, GPS & Custom Tags.
-                        </h2>
-                        <p className="text-[#86868B] text-sm sm:text-base leading-relaxed mb-8 font-normal">
-                            Filter candidate matches exactly how you want. Target specific genders, age limits, pincodes/city locations, or match based on custom interest tags.
-                        </p>
-
-                        <div className="space-y-3 mb-8">
-                            <div className="flex items-center gap-3 text-xs text-neutral-700 font-medium">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#1D1D1F]" />
-                                <span>Interested In: Anyone, Male, Female, Non-Binary, LGBTQ+, Other</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-xs text-neutral-700 font-medium">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#1D1D1F]" />
-                                <span>Match by Pincode, City Name, State, or GPS location</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-xs text-neutral-700 font-medium">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#1D1D1F]" />
-                                <span>Custom Interest Tags (up to 5 custom tags)</span>
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={() => navigate('/register')}
-                            className="text-xs font-bold text-[#1D1D1F] hover:text-neutral-600 transition-colors flex items-center gap-2 cursor-pointer"
-                        >
-                            <span>Configure Preferences</span>
-                            <span>→</span>
-                        </button>
-                    </div>
-
-                </div>
-            </section>
-
-            {/* ------------------------------------------------------------- */}
-            {/* FOOTER & FINAL CTA (APPLE LIGHT MODE) */}
-            {/* ------------------------------------------------------------- */}
-            <footer className="border-t border-neutral-200 py-24 text-center">
-                <div className="max-w-4xl mx-auto px-6">
-                    <h2 className="text-4xl sm:text-6xl font-bold tracking-tight text-[#1D1D1F] mb-6">
-                        Ready to experience weeChat?
-                    </h2>
-                    <p className="text-[#86868B] text-sm sm:text-base mb-10 max-w-lg mx-auto font-normal">
-                        Join thousands using the ultimate all-in-one Apple Light communication platform today.
+                    {/* Keyword-Rich Value Proposition Subtitle */}
+                    <p className="text-[#86868B] text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed font-normal">
+                        weeChat is the modern, fast, and secure Omegle alternative. Connect instantly with strangers in HD 1-on-1 WebRTC video calls, create group lounges for up to 100 people, and make new friends with zero latency.
                     </p>
-                    <button
-                        onClick={() => navigate('/register')}
-                        className="px-8 py-3.5 bg-[#1D1D1F] text-white font-semibold rounded-full hover:bg-neutral-800 transition-all text-sm active:scale-95 cursor-pointer mb-16 shadow-lg shadow-neutral-300"
-                    >
-                        Create Your Free Account
-                    </button>
+
+                    {/* Primary Call to Action Buttons */}
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-md">
+                        <button
+                            onClick={() => navigate('/register')}
+                            className="w-full sm:w-auto px-8 py-4 bg-[#1D1D1F] text-white font-bold rounded-full hover:bg-neutral-800 transition-all text-sm active:scale-95 cursor-pointer shadow-xl shadow-black/15 flex items-center justify-center gap-2 group"
+                        >
+                            <Video className="w-4 h-4" />
+                            <span>Start Random Video Chat</span>
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                        <button
+                            onClick={() => scrollToSection('features')}
+                            className="w-full sm:w-auto px-8 py-4 bg-white border border-neutral-300 text-[#1D1D1F] hover:bg-neutral-100 transition-all text-sm font-semibold rounded-full active:scale-95 cursor-pointer shadow-xs"
+                        >
+                            Explore Features ↓
+                        </button>
+                    </div>
+
+                    {/* Trust Signals & Highlights */}
+                    <div className="mt-12 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-xs text-neutral-500 font-medium">
+                        <span className="flex items-center gap-1.5">
+                            <Zap className="w-3.5 h-3.5 text-amber-500" />
+                            Sub-150ms Connection
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <Lock className="w-3.5 h-3.5 text-blue-500" />
+                            End-to-End P2P Encrypted
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <Globe2 className="w-3.5 h-3.5 text-emerald-500" />
+                            Global Stranger Matching
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                            No App Download Required
+                        </span>
+                    </div>
+
+                </section>
+
+                {/* ------------------------------------------------------------- */}
+                {/* SOCIAL PROOF STATS STRIP */}
+                {/* ------------------------------------------------------------- */}
+                <section className="border-y border-neutral-200/80 bg-white/60 py-8 px-6">
+                    <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                        <div>
+                            <div className="text-3xl sm:text-4xl font-extrabold text-[#1D1D1F] tracking-tight">100K+</div>
+                            <div className="text-xs text-neutral-500 font-medium mt-1">Random Matches Connected</div>
+                        </div>
+                        <div>
+                            <div className="text-3xl sm:text-4xl font-extrabold text-[#1D1D1F] tracking-tight">&lt;150ms</div>
+                            <div className="text-xs text-neutral-500 font-medium mt-1">Instant WebRTC Handshake</div>
+                        </div>
+                        <div>
+                            <div className="text-3xl sm:text-4xl font-extrabold text-[#1D1D1F] tracking-tight">100</div>
+                            <div className="text-xs text-neutral-500 font-medium mt-1">Max People per Room</div>
+                        </div>
+                        <div>
+                            <div className="text-3xl sm:text-4xl font-extrabold text-[#1D1D1F] tracking-tight">100%</div>
+                            <div className="text-xs text-neutral-500 font-medium mt-1">Free Peer-to-Peer Calls</div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* ------------------------------------------------------------- */}
+                {/* HOW IT WORKS: 3 STEPS TO MEET STRANGERS */}
+                {/* ------------------------------------------------------------- */}
+                <section id="how-it-works" className="py-24 px-6 max-w-6xl mx-auto">
+                    <div className="text-center max-w-2xl mx-auto mb-16">
+                        <span className="text-xs font-bold uppercase tracking-widest text-[#86868B]">Simple & Fast</span>
+                        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1D1D1F] mt-2">
+                            How weeChat Works in 3 Steps
+                        </h2>
+                        <p className="text-sm text-neutral-500 mt-2">
+                            Start chatting with random people online in seconds without complicated setup.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="p-8 rounded-3xl bg-white border border-neutral-200/90 shadow-sm text-left flex flex-col gap-3">
+                            <span className="w-10 h-10 rounded-2xl bg-neutral-100 text-[#1D1D1F] font-extrabold text-sm flex items-center justify-center">
+                                01
+                            </span>
+                            <h3 className="text-lg font-bold text-[#1D1D1F]">Open in Browser</h3>
+                            <p className="text-xs text-neutral-600 leading-relaxed">
+                                No APK or App Store download needed. weeChat works natively on your iPhone, Android, or laptop browser with one tap.
+                            </p>
+                        </div>
+
+                        <div className="p-8 rounded-3xl bg-white border border-neutral-200/90 shadow-sm text-left flex flex-col gap-3">
+                            <span className="w-10 h-10 rounded-2xl bg-[#1D1D1F] text-white font-extrabold text-sm flex items-center justify-center">
+                                02
+                            </span>
+                            <h3 className="text-lg font-bold text-[#1D1D1F]">Click Start Matchmaking</h3>
+                            <p className="text-xs text-neutral-600 leading-relaxed">
+                                Our in-memory socket ticker connects you with an active online stranger in under 150ms with pre-warmed HD video.
+                            </p>
+                        </div>
+
+                        <div className="p-8 rounded-3xl bg-white border border-neutral-200/90 shadow-sm text-left flex flex-col gap-3">
+                            <span className="w-10 h-10 rounded-2xl bg-neutral-100 text-[#1D1D1F] font-extrabold text-sm flex items-center justify-center">
+                                03
+                            </span>
+                            <h3 className="text-lg font-bold text-[#1D1D1F]">Talk, Chat, or Skip</h3>
+                            <p className="text-xs text-neutral-600 leading-relaxed">
+                                Enjoy face-to-face video and text chat. Not feeling the match? Simply hit Spacebar or click "Next Stranger" to shuffle instantly.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                {/* ------------------------------------------------------------- */}
+                {/* FEATURE 01: 1-ON-1 RANDOM VIDEO MATCHING */}
+                {/* ------------------------------------------------------------- */}
+                <section id="service-video" className="py-24 px-6 max-w-6xl mx-auto border-t border-neutral-200">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                        
+                        <div className="lg:col-span-6 text-left">
+                            <span className="text-xs uppercase tracking-widest text-[#86868B] font-bold mb-2 block">
+                                Core Capability 01
+                            </span>
+                            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#1D1D1F] mb-6 leading-tight">
+                                Instant 1-on-1 Random Video Chat.
+                            </h2>
+                            <p className="text-[#86868B] text-sm sm:text-base leading-relaxed mb-8 font-normal">
+                                Missing Omegle? weeChat offers a significantly faster and safer stranger video experience. Featuring hardware-accelerated WebRTC P2P streams, adaptive bitrates, background camera pre-warming, and instant skip controls.
+                            </p>
+                            
+                            <div className="space-y-3 mb-8">
+                                <div className="flex items-center gap-3 text-xs text-neutral-700 font-medium">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                    <span>Instant Spacebar keyboard skip for rapid stranger shuffle</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-xs text-neutral-700 font-medium">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                    <span>Direct peer-to-peer encryption with zero video caching</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-xs text-neutral-700 font-medium">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                    <span>In-call left-aligned live text chat drawer</span>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => navigate('/register')}
+                                className="px-6 py-3 bg-[#1D1D1F] text-white rounded-full text-xs font-bold hover:bg-neutral-800 transition-all cursor-pointer flex items-center gap-2"
+                            >
+                                <span>Start 1-on-1 Call</span>
+                                <span>→</span>
+                            </button>
+                        </div>
+
+                        {/* Interactive UI Illustration */}
+                        <div className="lg:col-span-6 flex justify-center">
+                            <div className="w-full max-w-md p-6 rounded-3xl bg-neutral-950 border border-neutral-800 text-white shadow-2xl relative overflow-hidden">
+                                <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                                        <span className="text-xs font-bold">Live P2P Connection</span>
+                                    </div>
+                                    <span className="text-[10px] text-neutral-400 uppercase font-mono">1080p WebRTC</span>
+                                </div>
+                                <div className="h-48 my-4 rounded-2xl bg-neutral-900 border border-neutral-800 flex flex-col items-center justify-center relative overflow-hidden">
+                                    <div className="w-12 h-12 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-neutral-400">
+                                        <Video className="w-6 h-6" />
+                                    </div>
+                                    <span className="text-xs text-neutral-400 font-medium mt-2">Connected with Stranger</span>
+                                    <span className="absolute bottom-3 right-3 px-2 py-0.5 rounded-md bg-black/70 text-[10px] text-white">You</span>
+                                </div>
+                                <div className="flex justify-between items-center pt-2">
+                                    <span className="text-xs text-red-400 font-semibold">Stop Call</span>
+                                    <div className="flex gap-2">
+                                        <span className="px-4 py-2 rounded-full bg-white text-black text-xs font-bold">Next Stranger ⏩</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                {/* ------------------------------------------------------------- */}
+                {/* FEATURE 02: CUSTOM ROOMS HUB (UP TO 100 PARTICIPANTS) */}
+                {/* ------------------------------------------------------------- */}
+                <section id="service-rooms" className="py-24 px-6 max-w-6xl mx-auto border-t border-neutral-200">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                        
+                        <div className="lg:col-span-6 flex justify-center order-2 lg:order-1">
+                            <div className="w-full max-w-md p-6 rounded-3xl bg-white border border-neutral-200/90 shadow-xl text-left">
+                                <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
+                                    <span className="text-xs font-bold text-neutral-900">Custom Group Lounge</span>
+                                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">48 / 100 Live</span>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2 my-4">
+                                    <div className="h-20 bg-neutral-100 rounded-xl flex items-center justify-center text-[10px] font-bold text-neutral-600">Host (Video)</div>
+                                    <div className="h-20 bg-neutral-100 rounded-xl flex items-center justify-center text-[10px] font-bold text-neutral-600">Alex</div>
+                                    <div className="h-20 bg-neutral-100 rounded-xl flex items-center justify-center text-[10px] font-bold text-neutral-600">Maria</div>
+                                </div>
+                                <div className="p-3 bg-neutral-50 rounded-xl text-xs text-neutral-600 flex items-center justify-between">
+                                    <span>Passcode Protected & Screen Share</span>
+                                    <Lock className="w-4 h-4 text-neutral-500" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="lg:col-span-6 text-left order-1 lg:order-2">
+                            <span className="text-xs uppercase tracking-widest text-[#86868B] font-bold mb-2 block">
+                                Core Capability 02
+                            </span>
+                            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#1D1D1F] mb-6 leading-tight">
+                                Custom Rooms for Up to 100 People.
+                            </h2>
+                            <p className="text-[#86868B] text-sm sm:text-base leading-relaxed mb-8 font-normal">
+                                Move beyond 1-on-1 chats into multi-participant group lounges. Create public meetups, study hangouts, gaming voice channels, or private rooms with passcode protection.
+                            </p>
+
+                            <div className="space-y-3 mb-8">
+                                <div className="flex items-center gap-3 text-xs text-neutral-700 font-medium">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                    <span>Supports Audio-only, Video grid, and Group text modes</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-xs text-neutral-700 font-medium">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                    <span>Crystal clear Desktop & Mobile screen sharing</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-xs text-neutral-700 font-medium">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                    <span>Shareable invite links (weechat-virid.vercel.app/join/CODE)</span>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => navigate('/register')}
+                                className="px-6 py-3 bg-[#1D1D1F] text-white rounded-full text-xs font-bold hover:bg-neutral-800 transition-all cursor-pointer flex items-center gap-2"
+                            >
+                                <span>Create a Custom Room</span>
+                                <span>→</span>
+                            </button>
+                        </div>
+
+                    </div>
+                </section>
+
+                {/* ------------------------------------------------------------- */}
+                {/* COMPARISON: WEECHAT VS OMEGLE & OMETV */}
+                {/* ------------------------------------------------------------- */}
+                <section id="comparison" className="py-24 px-6 max-w-6xl mx-auto border-t border-neutral-200">
+                    <div className="text-center max-w-2xl mx-auto mb-16">
+                        <span className="text-xs font-bold uppercase tracking-widest text-[#86868B]">Comparison</span>
+                        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1D1D1F] mt-2">
+                            Why weeChat is the Best Modern Random Video Chat
+                        </h2>
+                        <p className="text-sm text-neutral-500 mt-2">
+                            See how weeChat compares to discontinued or ad-filled platforms like Omegle and OmeTV.
+                        </p>
+                    </div>
+
+                    <div className="w-full overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-xs sm:text-sm bg-white rounded-3xl border border-neutral-200 overflow-hidden shadow-sm">
+                            <thead>
+                                <tr className="border-b border-neutral-200 bg-neutral-50/80">
+                                    <th className="p-4 sm:p-5 font-bold text-neutral-900">Feature</th>
+                                    <th className="p-4 sm:p-5 font-bold text-blue-600">weeChat</th>
+                                    <th className="p-4 sm:p-5 font-bold text-neutral-500">Old Omegle</th>
+                                    <th className="p-4 sm:p-5 font-bold text-neutral-500">Other Alternatives</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-neutral-100">
+                                <tr>
+                                    <td className="p-4 sm:p-5 font-semibold text-neutral-900">Connection Speed</td>
+                                    <td className="p-4 sm:p-5 text-emerald-600 font-bold">⚡ Instant &lt;150ms</td>
+                                    <td className="p-4 sm:p-5 text-neutral-500">Slow (2–5 seconds)</td>
+                                    <td className="p-4 sm:p-5 text-neutral-500">Variable / Laggy</td>
+                                </tr>
+                                <tr>
+                                    <td className="p-4 sm:p-5 font-semibold text-neutral-900">Video Quality</td>
+                                    <td className="p-4 sm:p-5 text-emerald-600 font-bold">1080p HD WebRTC</td>
+                                    <td className="p-4 sm:p-5 text-neutral-500">360p Low Bitrate</td>
+                                    <td className="p-4 sm:p-5 text-neutral-500">480p standard</td>
+                                </tr>
+                                <tr>
+                                    <td className="p-4 sm:p-5 font-semibold text-neutral-900">Group Lounges</td>
+                                    <td className="p-4 sm:p-5 text-emerald-600 font-bold">Yes (Up to 100 people)</td>
+                                    <td className="p-4 sm:p-5 text-red-500 font-medium">No (1-on-1 only)</td>
+                                    <td className="p-4 sm:p-5 text-red-500 font-medium">Paid add-on</td>
+                                </tr>
+                                <tr>
+                                    <td className="p-4 sm:p-5 font-semibold text-neutral-900">Mobile Compatibility</td>
+                                    <td className="p-4 sm:p-5 text-emerald-600 font-bold">Native in any browser</td>
+                                    <td className="p-4 sm:p-5 text-neutral-500">Clunky mobile web</td>
+                                    <td className="p-4 sm:p-5 text-neutral-500">Requires app install</td>
+                                </tr>
+                                <tr>
+                                    <td className="p-4 sm:p-5 font-semibold text-neutral-900">User Moderation & Safety</td>
+                                    <td className="p-4 sm:p-5 text-emerald-600 font-bold">Active Shield Reporting</td>
+                                    <td className="p-4 sm:p-5 text-red-500 font-medium">Unmoderated bots</td>
+                                    <td className="p-4 sm:p-5 text-neutral-500">Basic</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                {/* ------------------------------------------------------------- */}
+                {/* FREQUENTLY ASKED QUESTIONS (FAQ ACCORDION FOR GOOGLE RICH SNIPPETS) */}
+                {/* ------------------------------------------------------------- */}
+                <section id="faq" className="py-24 px-6 max-w-4xl mx-auto border-t border-neutral-200">
+                    <div className="text-center mb-16">
+                        <span className="text-xs font-bold uppercase tracking-widest text-[#86868B]">Frequently Asked Questions</span>
+                        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1D1D1F] mt-2">
+                            Everything You Need to Know About weeChat
+                        </h2>
+                        <p className="text-sm text-neutral-500 mt-2">
+                            Answers to common questions about random video chat, privacy, and custom rooms.
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        {faqs.map((faq, idx) => (
+                            <div 
+                                key={idx}
+                                className="bg-white border border-neutral-200/90 rounded-2xl overflow-hidden shadow-xs transition-all"
+                            >
+                                <button
+                                    type="button"
+                                    onClick={() => toggleFaq(idx)}
+                                    className="w-full p-5 text-left flex items-center justify-between gap-4 font-bold text-sm sm:text-base text-[#1D1D1F] hover:bg-neutral-50/50 transition-colors cursor-pointer"
+                                >
+                                    <span>{faq.q}</span>
+                                    <ChevronDown className={`w-4 h-4 text-neutral-400 shrink-0 transition-transform duration-200 ${openFaq === idx ? 'rotate-180 text-black' : ''}`} />
+                                </button>
+                                {openFaq === idx && (
+                                    <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-neutral-600 leading-relaxed border-t border-neutral-100">
+                                        {faq.a}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* ------------------------------------------------------------- */}
+                {/* FINAL CALL TO ACTION (CTA) */}
+                {/* ------------------------------------------------------------- */}
+                <section className="py-24 px-6 text-center border-t border-neutral-200 bg-white/40">
+                    <div className="max-w-3xl mx-auto">
+                        <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-[#1D1D1F] mb-4">
+                            Ready to Meet New People Right Now?
+                        </h2>
+                        <p className="text-sm sm:text-base text-neutral-600 mb-8 max-w-lg mx-auto">
+                            Jump into instant 1-on-1 random video calls or create a group room. Free forever, no app required.
+                        </p>
+                        <button
+                            onClick={() => navigate('/register')}
+                            className="px-9 py-4 bg-[#1D1D1F] text-white font-bold rounded-full hover:bg-neutral-800 transition-all text-sm active:scale-95 cursor-pointer shadow-xl shadow-black/15 inline-flex items-center gap-2"
+                        >
+                            <Video className="w-4 h-4" />
+                            <span>Start Random Video Chat Free</span>
+                        </button>
+                    </div>
+                </section>
+            </main>
+
+            {/* ------------------------------------------------------------- */}
+            {/* SEO-OPTIMIZED FOOTER WITH KEYWORD ANCHORS & SITEMAP CUES */}
+            {/* ------------------------------------------------------------- */}
+            <footer className="border-t border-neutral-200 py-16 bg-[#F5F5F7]">
+                <div className="max-w-6xl mx-auto px-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12 text-left">
+                        <div>
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-[#1D1D1F] mb-4">Random Chat</h4>
+                            <ul className="space-y-2 text-xs text-neutral-600">
+                                <li><button onClick={() => navigate('/register')} className="hover:text-black cursor-pointer">1-on-1 Video Chat</button></li>
+                                <li><button onClick={() => navigate('/register')} className="hover:text-black cursor-pointer">Omegle Alternative</button></li>
+                                <li><button onClick={() => navigate('/register')} className="hover:text-black cursor-pointer">Talk to Strangers</button></li>
+                                <li><button onClick={() => navigate('/register')} className="hover:text-black cursor-pointer">Fast Random Matching</button></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-[#1D1D1F] mb-4">Group Rooms</h4>
+                            <ul className="space-y-2 text-xs text-neutral-600">
+                                <li><button onClick={() => navigate('/register')} className="hover:text-black cursor-pointer">Custom Lounges</button></li>
+                                <li><button onClick={() => navigate('/register')} className="hover:text-black cursor-pointer">100-Person Video Call</button></li>
+                                <li><button onClick={() => navigate('/register')} className="hover:text-black cursor-pointer">Audio Stages</button></li>
+                                <li><button onClick={() => navigate('/register')} className="hover:text-black cursor-pointer">Screen Sharing</button></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-[#1D1D1F] mb-4">Features</h4>
+                            <ul className="space-y-2 text-xs text-neutral-600">
+                                <li><button onClick={() => navigate('/register')} className="hover:text-black cursor-pointer">WebRTC P2P Technology</button></li>
+                                <li><button onClick={() => navigate('/register')} className="hover:text-black cursor-pointer">Location Matching</button></li>
+                                <li><button onClick={() => navigate('/register')} className="hover:text-black cursor-pointer">Interest Tags</button></li>
+                                <li><button onClick={() => navigate('/register')} className="hover:text-black cursor-pointer">Realtime Messaging</button></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-[#1D1D1F] mb-4">Safety & Trust</h4>
+                            <ul className="space-y-2 text-xs text-neutral-600">
+                                <li><button onClick={() => navigate('/login')} className="hover:text-black cursor-pointer">Community Guidelines</button></li>
+                                <li><button onClick={() => navigate('/login')} className="hover:text-black cursor-pointer">Privacy Policy</button></li>
+                                <li><button onClick={() => navigate('/login')} className="hover:text-black cursor-pointer">Terms of Service</button></li>
+                                <li><button onClick={() => navigate('/login')} className="hover:text-black cursor-pointer">Report Abuse</button></li>
+                            </ul>
+                        </div>
+                    </div>
 
                     <div className="pt-8 border-t border-neutral-200 flex flex-col sm:flex-row justify-between items-center text-xs text-[#86868B] gap-4">
-                        <span>Copyright © {new Date().getFullYear()} weeChat Inc. All rights reserved.</span>
-                        <div className="flex gap-6">
-                            <span onClick={() => navigate('/login')} className="hover:text-[#1D1D1F] cursor-pointer transition-colors font-medium">Privacy Policy</span>
-                            <span onClick={() => navigate('/login')} className="hover:text-[#1D1D1F] cursor-pointer transition-colors font-medium">Terms of Service</span>
-                            <span onClick={() => navigate('/login')} className="hover:text-[#1D1D1F] cursor-pointer transition-colors font-medium">Security</span>
+                        <span>© {new Date().getFullYear()} weeChat Inc. The modern, free Omegle alternative. All rights reserved.</span>
+                        <div className="flex gap-4">
+                            <span>Encrypted WebRTC P2P</span>
+                            <span>•</span>
+                            <span>SSL Secured</span>
                         </div>
                     </div>
                 </div>
