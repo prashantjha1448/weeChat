@@ -1,6 +1,7 @@
 import { Server } from 'socket.io';
 import { env } from '../config/env.js';
 import { initRedis } from '../config/redis.js';
+import { startMatchmakingTicker } from '../services/matchmaking.service.js';
 import { socketAuth } from '../middleware/socketAuth.middleware.js';
 import { registerMatchmakingHandlers } from './matchmaking.socket.js';
 import { registerSignalingHandlers } from './signaling.socket.js';
@@ -57,6 +58,8 @@ export const initSocketServer = (httpServer) => {
         }
     });
 
+    // Start Real-Time Auto-Shuffle Matchmaker
+    startMatchmakingTicker(io);
 
     // Mount Socket Authentication Middleware (Middleware 12)
     io.use(socketAuth);

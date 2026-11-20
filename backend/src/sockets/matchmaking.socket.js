@@ -1,92 +1,33 @@
 import {
     addToMatchQueue,
     removeFromMatchQueue,
-    findBestMatchInQueue,
-    getMatchQueueSize,
-    getMatchQueueCandidateIds
+    tryImmediateMatch,
+    getMatchQueueSize
 } from '../services/matchmaking.service.js';
 
 /**
- * Matchmaking Socket Handler — Step 3 Realtime Sockets
+ * Matchmaking Socket Handler — High-Speed Instant Shuffle
  * Events: queue:join, queue:leave, match:found
  */
 export const registerMatchmakingHandlers = (io, socket) => {
     const user = socket.user;
     const userIdStr = user._id.toString();
 
-    // 1. Join Queue Event
-    socket.on('queue:join', async () => {
+    // 1. Join Queue Event (Start Random Video Chat)
+    socket.on('queue:join', () => {
         try {
-            const sizeBefore = getMatchQueueSize();
-            console.log(`📡 [QUEUE:JOIN] User: ${user.name} (ID: ${userIdStr}, Socket: ${socket.id}). Pool size before: ${sizeBefore}`);
+            console.log(`📡 [QUEUE:JOIN] ${user.name} (@${user.username}) joined matchmaking`);
+            addToMatchQueue(user, socket.id);
 
-            await addToMatchQueue(user, socket.id);
-            const sizeAfter = getMatchQueueSize();
-            console.log(`📡 [QUEUE:JOIN] User ${userIdStr} added. Pool size after: ${sizeAfter}. Pool candidate IDs: [${getMatchQueueCandidateIds().join(', ')}]`);
+            socket.emit('queue:status', {
+                status: 'waiting',
+                message: 'Looking for someone online to match with...'
+            });
 
-            socket.emit('queue:status', { status: 'waiting', message: 'Searching for best match...' });
-
-            // Check if immediate match is available in candidate pool
-            const matchResult = findBestMatchInQueue(user._id);
-
-            if (matchResult) {
-                const { opponent, matchScore } = matchResult;
-                console.log(`🎉 [MATCH:SUCCESS] Pairing ${userIdStr} <-> ${opponent.user._id} (Score: ${matchScore})`);
-
-                // Remove both users from waiting queue
-                removeFromMatchQueue(user._id);
-                removeFromMatchQueue(opponent.user._id);
-
-                // Generate a unique 1-on-1 WebRTC Call Room ID
-                const roomId = `room_${Date.now()}_${user._id.toString().slice(-4)}_${opponent.user._id.toString().slice(-4)}`;
-
-                // Get opponent socket instance
-                const opponentSocket = io.sockets.sockets.get(opponent.socketId);
-
-                // If opponent disconnected unexpectedly, re-add current user and drop dead opponent
-                if (!opponentSocket || !opponentSocket.connected) {
-                    console.warn(`[MATCHMAKING WARN] Opponent socket ${opponent.socketId} is dead. Searching again.`);
-                    await addToMatchQueue(user, socket.id);
-                    return;
-                }
-
-                // Join both sockets to the WebRTC Call Room
-                socket.join(roomId);
-                opponentSocket.join(roomId);
-
-                // Emit match:found to Peer A
-                socket.emit('match:found', {
-                    roomId,
-                    matchScore,
-                    isCaller: true, // Caller initiates WebRTC offer
-                    peer: {
-                        userId: opponent.user._id,
-                        name: opponent.user.name,
-                        username: opponent.user.username,
-                        gender: opponent.user.gender,
-                        avatar: opponent.profile?.avatar || opponent.user?.avatar || "",
-                        city: opponent.profile?.city || ""
-                    }
-                });
-
-                // Emit match:found to Peer B
-                opponentSocket.emit('match:found', {
-                    roomId,
-                    matchScore,
-                    isCaller: false, // Answerer waits for offer
-                    peer: {
-                        userId: user._id,
-                        name: user.name,
-                        username: user.username,
-                        gender: user.gender,
-                        avatar: user.avatar || "",
-                        city: ""
-                    }
-                });
-
-                console.log(`🎉 Match Found! Room: ${roomId} | Score: ${matchScore} | ${user.name} <-> ${opponent.user.name}`);
-            } else {
-                console.log(`⏳ [MATCH:WAITING] No eligible candidate for user ${userIdStr}. Waiting in queue.`);
+            // Attempt instant match with any currently waiting candidate
+            const matched = tryImmediateMatch(io, user._id);
+            if (!matched) {
+                console.log(`⏳ [QUEUE:WAITING] User ${user.name} waiting in pool (Pool size: ${getMatchQueueSize()})`);
             }
         } catch (err) {
             console.error("Queue Join Error:", err);
@@ -96,7 +37,7 @@ export const registerMatchmakingHandlers = (io, socket) => {
 
     // 2. Leave Queue Event
     socket.on('queue:leave', () => {
-        console.log(`🚪 User left queue: ${user.name}`);
+        console.log(`🚪 [QUEUE:LEAVE] User ${user.name} left queue`);
         removeFromMatchQueue(user._id);
         socket.emit('queue:status', { status: 'idle', message: 'Left queue' });
     });
