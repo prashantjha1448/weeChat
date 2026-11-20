@@ -9,6 +9,9 @@ import MatchPreferenceModel from '../models/matchPreference.model.js';
 // In-Memory Waiting Queue Pool Map (Key: userId string, Value: queueCandidate object)
 const waitingQueuePool = new Map();
 
+export const getMatchQueueSize = () => waitingQueuePool.size;
+export const getMatchQueueCandidateIds = () => Array.from(waitingQueuePool.keys());
+
 /**
  * Calculate Match Score between Candidate A and Candidate B
  * Score Formula: GenderMatch + LocationScore + InterestOverlap + HeightCheck + WaitBonus
@@ -25,8 +28,13 @@ export const calculateMatchScore = (candidateA, candidateB) => {
     const profB = candidateB.profile || {};
 
     // 1. Gender Filter Check (Mutual Compatibility)
-    const aWantsB = !prefA.gender || prefA.gender === 'any' || prefA.gender === userB.gender;
-    const bWantsA = !prefB.gender || prefB.gender === 'any' || prefB.gender === userA.gender;
+    // Starvation Relaxation: If either user has been waiting in queue for 5+ seconds, relax strict gender filters
+    const waitSecA = Math.floor((Date.now() - candidateA.joinedAt) / 1000);
+    const waitSecB = Math.floor((Date.now() - candidateB.joinedAt) / 1000);
+    const isRelaxed = waitSecA >= 5 || waitSecB >= 5;
+
+    const aWantsB = isRelaxed || !prefA.gender || prefA.gender === 'any' || prefA.gender === userB.gender;
+    const bWantsA = isRelaxed || !prefB.gender || prefB.gender === 'any' || prefB.gender === userA.gender;
 
     if (!aWantsB || !bWantsA) {
         return -1; // Incompatible gender filter
@@ -121,10 +129,16 @@ export const findBestMatchInQueue = (currentUserId) => {
     let highestScore = -1;
     const MIN_THRESHOLD = 0; // Instant random match pairing for any available candidate
 
+    console.log(`[MATCHMAKING EVAL] Evaluating queue for user ${currentUserId}. Candidates in pool: [${Array.from(waitingQueuePool.keys()).join(', ')}]`);
+
     for (const [id, opponentCandidate] of waitingQueuePool.entries()) {
-        if (id === currentUserId.toString()) continue;
+        if (id === currentUserId.toString()) {
+            continue;
+        }
 
         const score = calculateMatchScore(currentCandidate, opponentCandidate);
+        console.log(`[MATCHMAKING EVAL] Candidate ${currentUserId} vs ${id} -> Score: ${score}`);
+
         if (score >= MIN_THRESHOLD && score > highestScore) {
             highestScore = score;
             bestMatch = opponentCandidate;

@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  coturn:
+    image: coturn/coturn:latest
+    container_name: weechat_coturn
+    restart: unless-stopped
+    network_mode: "host" # Host networking ensures direct UDP/TCP traversal without NAT bottleneck
+    volumes:
+      - ./turnserver.conf:/etc/coturn/turnserver.conf:ro
+    environment:
+      - DETECT_EXTERNAL_IP=yes
+    # If not using host networking on Linux, map the following ports:
+    # ports:
+    #   - "3478:3478/tcp"
+    #   - "3478:3478/udp"
+    #   - "49152-49252:49152-49252/udp"

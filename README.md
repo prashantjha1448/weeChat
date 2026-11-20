@@ -471,7 +471,68 @@ chat-application/
 
 ---
 
-## 🔮 13. Future Roadmap
+## ⚡ 13. Multi-Slot Random Video Chat (Triple Stranger P2P Mesh)
+
+Users can chat with **3 independent strangers simultaneously** on a single screen with atomic Lua-based Redis matchmaking, WebRTC P2P mesh, and real-time adaptive bitrate control.
+
+### Architecture Highlights
+* **Single Shared MediaStream**: One `getUserMedia` capture (640x360 @ 24fps) shared across all 3 peer connections without cloning.
+* **Atomic Redis Matchmaking**: `match.lua` script enforces:
+  * Zero self-matching (including cross-slot self-collision).
+  * Bidirectional block enforcement and active peer avoidance.
+  * 24-hour seen history that resets only when eligible unconstrained candidates exist.
+* **Adaptive Mesh Quality (`adaptiveQuality.js`)**:
+  * Upload budget = `max(availableOutgoingBitrate) / activePeers` (clamped 150–800 kbps).
+  * Tiers: `<300 kbps` (240p), `300–600 kbps` (low 360p), `>600 kbps` (360p).
+  * Immediate downgrade; 6-second hysteresis delay before upgrading.
+  * Very low bandwidth (<150 kbps): sets video encoding `active=false`, maintaining audio.
+* **Coturn STUN/TURN**: Time-limited credentials generated dynamically via HMAC-SHA1 (`use-auth-secret`) with limited relay ports (`49152-49252`).
+
+---
+
+## 🛠️ 14. Quickstart: Running Locally
+
+### Step 1: Start Redis
+Ensure local Redis is active (listening on `127.0.0.1:6379`):
+```bash
+brew services start redis
+# Or via Docker:
+docker run -d --name weechat_redis -p 6379:6379 redis:alpine
+```
+
+### Step 2: Start Coturn (STUN/TURN)
+Run Coturn via Docker Compose:
+```bash
+docker compose -f coturn/docker-compose.turn.yml up -d
+```
+
+### Step 3: Start Backend Service
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+### Step 4: Start Frontend Client
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Navigate to `http://localhost:5173` and click **"Open 3 Slots →"** (or route `/multi`).
+
+### Step 5: Run Verification Suites
+```bash
+# 1. 20-User Concurrency & Leftover Ineligibility Simulation
+node backend/scripts/simulate-matching.js
+
+# 2. 7-Suite Socket.IO Signaling & WebRTC Relay Tests
+node backend/scripts/test-sockets.js
+```
+
+---
+
+## 🔮 15. Future Roadmap
 
 - [ ] **Selective Forwarding Unit (SFU) Integration**: Transition multi-participant rooms from hybrid mesh to a dedicated SFU server (e.g., MediaSoup or LiveKit) to scale video grids beyond 100 participants with reduced client bandwidth requirements.
 - [ ] **End-to-End Encryption (E2EE)**: Implement WebRTC Insertable Streams to support client-side media encryption.

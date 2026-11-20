@@ -22,6 +22,7 @@ import Register from "./components/Register";
 import Login from "./components/Login";
 import RoomsDashboardPage from "./pages/RoomsDashboardPage";
 import CustomRoomView from "./components/CustomRoomView";
+import MultiSlotPage from "./pages/MultiSlotPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 
@@ -80,6 +81,11 @@ const Routes = createBrowserRouter([
     {
         element: <ProtectedLayouts />,
         children: [
+            // Multi-Slot (3 Strangers Grid) Fullscreen Route
+            {
+                path: 'multi',
+                element: <MultiSlotPage />
+            },
             // App Navigation Routes (AppLayout with sticky Navbar & MobileTabBar)
             {
                 path: 'home',

@@ -1,5 +1,6 @@
 import { Server } from 'socket.io';
 import { env } from '../config/env.js';
+import { initRedis } from '../config/redis.js';
 import { socketAuth } from '../middleware/socketAuth.middleware.js';
 import { registerMatchmakingHandlers } from './matchmaking.socket.js';
 import { registerSignalingHandlers } from './signaling.socket.js';
@@ -7,6 +8,7 @@ import { registerCallHandlers } from './call.socket.js';
 import { registerChatHandlers } from './chat.socket.js';
 import { registerPresenceHandlers } from './presence.socket.js';
 import { registerCustomRoomHandlers } from './customRoom.socket.js';
+import { registerMultiSlotHandlers } from './multiSlot.socket.js';
 
 /**
  * Strict Origin Validation for WebSockets (Prevents CSWSH)
@@ -38,6 +40,9 @@ const isOriginAllowed = (origin) => {
  * Master Socket.io Server Initialization — All Socket Handlers Registered
  */
 export const initSocketServer = (httpServer) => {
+    // Flush Redis waiting pool on server boot
+    initRedis();
+
     const io = new Server(httpServer, {
         cors: {
             origin: (origin, callback) => {
@@ -67,6 +72,7 @@ export const initSocketServer = (httpServer) => {
         registerChatHandlers(io, socket);
         registerPresenceHandlers(io, socket);
         registerCustomRoomHandlers(io, socket);
+        registerMultiSlotHandlers(io, socket);
 
         socket.on('disconnect', (reason) => {
             console.log(`🔌 Socket Disconnected: ${socket.user.name} (Reason: ${reason})`);

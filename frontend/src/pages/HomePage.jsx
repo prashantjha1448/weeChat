@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
+import { Users } from 'lucide-react';
 import VideoCallScreen from '../components/VideoCallScreen';
 import { useSelector } from 'react-redux';
 import { useProfile } from '../hooks/useProfile';
 import { useMatchmaking } from '../hooks/useMatchmaking';
 
 const Home = () => {
+    const navigate = useNavigate();
     const { user } = useSelector((state) => state.auth);
     const {
         preference,
@@ -103,15 +106,41 @@ const Home = () => {
                                 </button>
                             </div>
                         ) : (
-                            /* Primary CTA Button */
-                            <button
-                                type="button"
-                                onClick={joinQueue}
-                                className="w-full max-w-md py-4 sm:py-4.5 rounded-full bg-black text-white font-semibold text-base sm:text-lg hover:bg-neutral-800 transition-all active:scale-[0.98] shadow-xl shadow-black/10 cursor-pointer flex items-center justify-center gap-3 group"
-                            >
-                                <span>Start Random Matchmaking</span>
-                                <span className="group-hover:translate-x-1 transition-transform">→</span>
-                            </button>
+                            /* Primary CTA Button & Mode Toggle */
+                            <div className="w-full flex flex-col items-center gap-4">
+                                <button
+                                    type="button"
+                                    onClick={joinQueue}
+                                    className="w-full max-w-md py-4 sm:py-4.5 rounded-full bg-black text-white font-semibold text-base sm:text-lg hover:bg-neutral-800 transition-all active:scale-[0.98] shadow-xl shadow-black/10 cursor-pointer flex items-center justify-center gap-3 group"
+                                >
+                                    <span>Start 1-on-1 Matchmaking</span>
+                                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                                </button>
+
+                                {/* Multi-Slot 3 Strangers Toggle Banner */}
+                                <div className="w-full max-w-md p-4 rounded-3xl bg-neutral-900 text-white flex items-center justify-between shadow-xl border border-neutral-800">
+                                    <div className="flex items-center gap-3 text-left">
+                                        <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-emerald-400">
+                                            <Users className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                                <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Multi-Slot Grid</p>
+                                            </div>
+                                            <h4 className="text-sm font-bold text-white">3 Strangers Mode</h4>
+                                            <p className="text-xs text-neutral-400">3 independent video slots</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate('/multi')}
+                                        className="px-4 py-2 rounded-full bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-all cursor-pointer whitespace-nowrap shadow-sm active:scale-95"
+                                    >
+                                        Open 3 Slots →
+                                    </button>
+                                </div>
+                            </div>
                         )}
 
                     </div>
