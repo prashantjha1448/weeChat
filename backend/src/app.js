@@ -30,6 +30,7 @@ import adminAnalyticsRoutes from './routes/adminAnalytics.routes.js';
 import adminConfigRoutes from './routes/adminConfig.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import customRoomRoutes from './routes/customRoom.routes.js';
+import publicStatsRoutes from './routes/publicStats.routes.js';
 
 import { connectDB } from './config/db.js';
 
@@ -111,6 +112,8 @@ app.use('/api/blocks/', blockRoutes);
 app.use('/api/moderation/', moderationRoutes);
 app.use('/api/notifications/', notificationRoutes);
 app.use('/api/support/', supportRoutes);
+app.use('/api/stats/', publicStatsRoutes);
+app.use('/api/public/stats/', publicStatsRoutes);
 app.use('/api/admin/', adminUserRoutes);
 app.use('/api/admin/', adminAnalyticsRoutes);
 app.use('/api/admin/', adminConfigRoutes);
