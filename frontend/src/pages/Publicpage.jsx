@@ -181,12 +181,6 @@ const Publicpage = () => {
                 {/* ------------------------------------------------------------- */}
                 <section className="pt-32 pb-20 px-6 max-w-6xl mx-auto flex flex-col justify-center items-center text-center relative">
                     
-                    {/* Live Online Badge Pill */}
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 text-xs font-semibold mb-6 animate-in fade-in">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span>#1 Free Omegle Alternative • 100% Free WebRTC Peer-to-Peer</span>
-                    </div>
-
                     {/* Primary H1 Heading for Google Ranking */}
                     <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-[#1D1D1F] mb-6 leading-[1.08]">
                         Free Random Video Chat. <br />
