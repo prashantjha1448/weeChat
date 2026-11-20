@@ -72,10 +72,10 @@ const Publicpage = () => {
 
                     {/* Navigation Anchor Links (SEO Optimized Anchor Text) */}
                     <div className="hidden md:flex items-center gap-8 text-xs font-medium text-[#86868B]">
-                        <button onClick={() => scrollToSection('features')} className="hover:text-[#1D1D1F] transition-colors cursor-pointer">Features</button>
+                        <button onClick={() => scrollToSection('how-it-works')} className="hover:text-[#1D1D1F] transition-colors cursor-pointer">How It Works</button>
                         <button onClick={() => scrollToSection('service-video')} className="hover:text-[#1D1D1F] transition-colors cursor-pointer">Random Video</button>
-                        <button onClick={() => scrollToSection('service-rooms')} className="hover:text-[#1D1D1F] transition-colors cursor-pointer">Group Rooms (100 Max)</button>
-                        <button onClick={() => scrollToSection('comparison')} className="hover:text-[#1D1D1F] transition-colors cursor-pointer">Why weeChat</button>
+                        <button onClick={() => scrollToSection('service-rooms')} className="hover:text-[#1D1D1F] transition-colors cursor-pointer">Group Rooms</button>
+                        <button onClick={() => navigate('/comparison')} className="hover:text-[#1D1D1F] transition-colors cursor-pointer">Why weeChat</button>
                         <button onClick={() => scrollToSection('faq')} className="hover:text-[#1D1D1F] transition-colors cursor-pointer">FAQ</button>
                     </div>
 
@@ -365,62 +365,28 @@ const Publicpage = () => {
                 </section>
 
                 {/* ------------------------------------------------------------- */}
-                {/* COMPARISON: WEECHAT VS OMEGLE & OMETV */}
+                {/* PLATFORM COMPARISON BANNER (SEPARATE PAGE LINK) */}
                 {/* ------------------------------------------------------------- */}
-                <section id="comparison" className="py-24 px-6 max-w-6xl mx-auto border-t border-neutral-200">
-                    <div className="text-center max-w-2xl mx-auto mb-16">
-                        <span className="text-xs font-bold uppercase tracking-widest text-[#86868B]">Comparison</span>
-                        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1D1D1F] mt-2">
-                            Why weeChat is the Best Modern Random Video Chat
-                        </h2>
-                        <p className="text-sm text-neutral-500 mt-2">
-                            See how weeChat compares to discontinued or ad-filled platforms like Omegle and OmeTV.
-                        </p>
-                    </div>
-
-                    <div className="w-full overflow-x-auto">
-                        <table className="w-full text-left border-collapse text-xs sm:text-sm bg-white rounded-3xl border border-neutral-200 overflow-hidden shadow-sm">
-                            <thead>
-                                <tr className="border-b border-neutral-200 bg-neutral-50/80">
-                                    <th className="p-4 sm:p-5 font-bold text-neutral-900">Feature</th>
-                                    <th className="p-4 sm:p-5 font-bold text-blue-600">weeChat</th>
-                                    <th className="p-4 sm:p-5 font-bold text-neutral-500">Old Omegle</th>
-                                    <th className="p-4 sm:p-5 font-bold text-neutral-500">Other Alternatives</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-neutral-100">
-                                <tr>
-                                    <td className="p-4 sm:p-5 font-semibold text-neutral-900">Connection Speed</td>
-                                    <td className="p-4 sm:p-5 text-emerald-600 font-bold">⚡ Instant &lt;150ms</td>
-                                    <td className="p-4 sm:p-5 text-neutral-500">Slow (2–5 seconds)</td>
-                                    <td className="p-4 sm:p-5 text-neutral-500">Variable / Laggy</td>
-                                </tr>
-                                <tr>
-                                    <td className="p-4 sm:p-5 font-semibold text-neutral-900">Video Quality</td>
-                                    <td className="p-4 sm:p-5 text-emerald-600 font-bold">1080p HD WebRTC</td>
-                                    <td className="p-4 sm:p-5 text-neutral-500">360p Low Bitrate</td>
-                                    <td className="p-4 sm:p-5 text-neutral-500">480p standard</td>
-                                </tr>
-                                <tr>
-                                    <td className="p-4 sm:p-5 font-semibold text-neutral-900">Group Lounges</td>
-                                    <td className="p-4 sm:p-5 text-emerald-600 font-bold">Yes (Up to 100 people)</td>
-                                    <td className="p-4 sm:p-5 text-red-500 font-medium">No (1-on-1 only)</td>
-                                    <td className="p-4 sm:p-5 text-red-500 font-medium">Paid add-on</td>
-                                </tr>
-                                <tr>
-                                    <td className="p-4 sm:p-5 font-semibold text-neutral-900">Mobile Compatibility</td>
-                                    <td className="p-4 sm:p-5 text-emerald-600 font-bold">Native in any browser</td>
-                                    <td className="p-4 sm:p-5 text-neutral-500">Clunky mobile web</td>
-                                    <td className="p-4 sm:p-5 text-neutral-500">Requires app install</td>
-                                </tr>
-                                <tr>
-                                    <td className="p-4 sm:p-5 font-semibold text-neutral-900">User Moderation & Safety</td>
-                                    <td className="p-4 sm:p-5 text-emerald-600 font-bold">Active Shield Reporting</td>
-                                    <td className="p-4 sm:p-5 text-red-500 font-medium">Unmoderated bots</td>
-                                    <td className="p-4 sm:p-5 text-neutral-500">Basic</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <section className="py-20 px-6 max-w-6xl mx-auto border-t border-neutral-200">
+                    <div className="p-8 sm:p-12 rounded-3xl bg-white border border-neutral-200/90 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-8 text-left">
+                        <div className="max-w-xl">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200/80 px-3 py-1 rounded-full mb-3 inline-block">
+                                Omegle Alternative Comparison
+                            </span>
+                            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1D1D1F] mb-3">
+                                Why weeChat is the Best Modern Random Video Chat
+                            </h2>
+                            <p className="text-sm text-neutral-600 leading-relaxed">
+                                See our full feature-by-feature benchmark comparing weeChat with the original Omegle, OmeTV, and other stranger chat platforms.
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => navigate('/comparison')}
+                            className="px-8 py-4 bg-[#1D1D1F] hover:bg-neutral-800 text-white text-xs font-bold rounded-full transition-all shrink-0 cursor-pointer shadow-lg active:scale-95 flex items-center gap-2"
+                        >
+                            <span>View Full Comparison</span>
+                            <ArrowRight className="w-4 h-4" />
+                        </button>
                     </div>
                 </section>
 

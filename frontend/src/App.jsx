@@ -40,6 +40,7 @@ import BlockedUsersSubPage from "./features/settings/subpages/BlockedUsersSubPag
 import MyReportsSubPage from "./features/settings/subpages/MyReportsSubPage";
 import SupportTicketsSubPage from "./features/settings/subpages/SupportTicketsSubPage";
 import JoinRoomRedirect from "./components/JoinRoomRedirect";
+import ComparisonPage from "./pages/ComparisonPage";
 
 const Routes = createBrowserRouter([
     // 1. Public Landing & Join Routes
@@ -50,6 +51,14 @@ const Routes = createBrowserRouter([
             {
                 index: true,
                 element: <Publicpage />
+            },
+            {
+                path: 'comparison',
+                element: <ComparisonPage />
+            },
+            {
+                path: 'why-weechat',
+                element: <ComparisonPage />
             },
             {
                 path: 'join/:roomId',
