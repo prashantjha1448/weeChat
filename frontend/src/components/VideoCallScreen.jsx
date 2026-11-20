@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useWebRTC } from '../hooks/useWebRTC';
-import { Mic, MicOff, Video, VideoOff, FastForward, PhoneOff, ShieldAlert } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, FastForward, PhoneOff, ShieldAlert, MessageSquare } from 'lucide-react';
 import InCallChat from './InCallChat';
 import ReportModal from './ReportModal';
 
@@ -11,6 +11,8 @@ const VideoCallScreen = ({ roomId, isCaller, matchedPeer, matchScore, onSkip, on
     const localVideoRef = useRef(null);
     const remoteVideoRef = useRef(null);
     const [showReportModal, setShowReportModal] = useState(false);
+    const [isChatOpen, setIsChatOpen] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
 
     const {
         localStream,
@@ -63,6 +65,22 @@ const VideoCallScreen = ({ roomId, isCaller, matchedPeer, matchScore, onSkip, on
         if (onEnd) onEnd();
     };
 
+    const handleNewMessage = useCallback(() => {
+        setIsChatOpen((open) => {
+            if (!open) {
+                setUnreadCount((prev) => prev + 1);
+            }
+            return open;
+        });
+    }, []);
+
+    const handleToggleChat = () => {
+        setIsChatOpen((prev) => {
+            if (!prev) setUnreadCount(0);
+            return !prev;
+        });
+    };
+
     return (
         <div className="w-full max-w-5xl mx-auto rounded-3xl bg-neutral-950 border border-neutral-800 shadow-2xl relative overflow-hidden flex flex-col items-center">
             
@@ -90,7 +108,7 @@ const VideoCallScreen = ({ roomId, isCaller, matchedPeer, matchScore, onSkip, on
                     <button
                         type="button"
                         onClick={() => setShowReportModal(true)}
-                        className="text-xs text-neutral-400 hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-neutral-800"
+                        className="text-xs text-neutral-400 hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-neutral-800 cursor-pointer"
                         title="Report User"
                     >
                         <ShieldAlert className="w-4 h-4" />
@@ -140,8 +158,13 @@ const VideoCallScreen = ({ roomId, isCaller, matchedPeer, matchScore, onSkip, on
                     </span>
                 </div>
 
-                {/* Text Chat Drawer Overlay */}
-                <InCallChat roomId={roomId} />
+                {/* In-Call Text Chat Drawer (Left-Aligned, Off/Hidden by default) */}
+                <InCallChat
+                    roomId={roomId}
+                    isOpen={isChatOpen}
+                    onClose={() => setIsChatOpen(false)}
+                    onNewMessage={handleNewMessage}
+                />
 
             </div>
 
@@ -158,8 +181,8 @@ const VideoCallScreen = ({ roomId, isCaller, matchedPeer, matchScore, onSkip, on
                     <span>Stop Chat</span>
                 </button>
 
-                {/* Center: Mic & Cam Toggles */}
-                <div className="flex items-center gap-3">
+                {/* Center: Mic, Cam & Chat Toggles */}
+                <div className="flex items-center gap-2.5 sm:gap-3">
                     <button
                         type="button"
                         onClick={toggleAudio}
@@ -184,6 +207,24 @@ const VideoCallScreen = ({ roomId, isCaller, matchedPeer, matchScore, onSkip, on
                         title={videoOff ? "Turn Video On" : "Turn Video Off"}
                     >
                         {videoOff ? <VideoOff className="w-4 h-4" /> : <Video className="w-4 h-4" />}
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={handleToggleChat}
+                        className={`relative p-3 rounded-full transition-all cursor-pointer ${
+                            isChatOpen
+                                ? 'bg-blue-600 text-white border border-blue-500 shadow-lg shadow-blue-500/20'
+                                : 'bg-neutral-900 text-neutral-200 hover:bg-neutral-800 border border-neutral-800'
+                        }`}
+                        title={isChatOpen ? "Close Chat" : "Open Chat"}
+                    >
+                        <MessageSquare className="w-4 h-4" />
+                        {unreadCount > 0 && !isChatOpen && (
+                            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-sm ring-2 ring-neutral-950 animate-pulse">
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                            </span>
+                        )}
                     </button>
                 </div>
 

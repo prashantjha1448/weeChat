@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { getSocket } from '../services/socket.service';
 
 const ICE_SERVERS = {
@@ -15,6 +15,30 @@ const ICE_SERVERS = {
 let persistentLocalStream = null;
 
 /**
+ * Pre-warm Camera & Mic so connection is instant (0ms delay)
+ */
+export const prewarmMedia = async () => {
+    if (persistentLocalStream && persistentLocalStream.active && persistentLocalStream.getVideoTracks().length > 0) {
+        return persistentLocalStream;
+    }
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                width: { ideal: 640 },
+                height: { ideal: 360 },
+                frameRate: { ideal: 24 }
+            },
+            audio: true
+        });
+        persistentLocalStream = stream;
+        return stream;
+    } catch (err) {
+        console.warn('[PREWARM MEDIA ERROR]', err);
+        return null;
+    }
+};
+
+/**
  * Custom WebRTC Hook — 1-on-1 Instant P2P Video Call Engine
  */
 export const useWebRTC = (roomId, isCaller, onPeerLeft) => {
@@ -26,6 +50,7 @@ export const useWebRTC = (roomId, isCaller, onPeerLeft) => {
 
     const peerConnectionRef = useRef(null);
     const pendingCandidatesRef = useRef([]);
+    const pendingOfferRef = useRef(null);
 
     // Drain queued ICE candidates once remoteDescription is set
     const drainPendingCandidates = async (pc) => {
@@ -40,30 +65,38 @@ export const useWebRTC = (roomId, isCaller, onPeerLeft) => {
         }
     };
 
+    // Close and clean up RTCPeerConnection cleanly (leaves camera alive)
+    const closePeerConnection = useCallback(() => {
+        if (peerConnectionRef.current) {
+            peerConnectionRef.current.onicecandidate = null;
+            peerConnectionRef.current.ontrack = null;
+            peerConnectionRef.current.oniceconnectionstatechange = null;
+            peerConnectionRef.current.close();
+            peerConnectionRef.current = null;
+        }
+        pendingCandidatesRef.current = [];
+        pendingOfferRef.current = null;
+        setRemoteStream(null);
+        setConnectionState('connecting');
+    }, []);
+
     useEffect(() => {
         if (!roomId) return;
 
         const socket = getSocket();
         pendingCandidatesRef.current = [];
+        pendingOfferRef.current = null;
 
         const startWebRTCFlow = async () => {
             try {
                 // 1. Reuse persistent local stream if active, or request camera
                 let stream = persistentLocalStream;
                 if (!stream || !stream.active || stream.getVideoTracks().length === 0) {
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        video: {
-                            width: { ideal: 640 },
-                            height: { ideal: 360 },
-                            frameRate: { ideal: 24 }
-                        },
-                        audio: true
-                    });
-                    persistentLocalStream = stream;
+                    stream = await prewarmMedia();
                 }
                 setLocalStream(stream);
 
-                // 2. Create RTCPeerConnection with STUN
+                // 2. Create RTCPeerConnection with Google STUN
                 const pc = new RTCPeerConnection(ICE_SERVERS);
                 peerConnectionRef.current = pc;
 
@@ -78,7 +111,9 @@ export const useWebRTC = (roomId, isCaller, onPeerLeft) => {
                 };
 
                 // Add local stream tracks to Peer Connection
-                stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+                if (stream) {
+                    stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+                }
 
                 // Handle incoming remote media track
                 pc.ontrack = (event) => {
@@ -99,8 +134,19 @@ export const useWebRTC = (roomId, isCaller, onPeerLeft) => {
                     }
                 };
 
-                // Caller creates & sends SDP Offer
-                if (isCaller) {
+                // Check if an offer arrived while camera / pc was initializing
+                if (pendingOfferRef.current) {
+                    const earlyOffer = pendingOfferRef.current;
+                    pendingOfferRef.current = null;
+                    console.log(`📥 [WEBRTC] Processing buffered early SDP Offer in room ${roomId}`);
+                    await pc.setRemoteDescription(new RTCSessionDescription(earlyOffer));
+                    await drainPendingCandidates(pc);
+
+                    const answer = await pc.createAnswer();
+                    await pc.setLocalDescription(answer);
+                    socket.emit('webrtc:answer', { roomId, answer });
+                } else if (isCaller) {
+                    // Caller creates & sends SDP Offer
                     console.log(`📤 [WEBRTC] Caller creating offer for room: ${roomId}`);
                     const offer = await pc.createOffer();
                     await pc.setLocalDescription(offer);
@@ -111,39 +157,52 @@ export const useWebRTC = (roomId, isCaller, onPeerLeft) => {
             }
         };
 
-        // Handshake Event Listeners
+        // Handshake Event Listeners (NEVER DROP OFFERS OR CANDIDATES)
         const handleOffer = async ({ offer }) => {
             const pc = peerConnectionRef.current;
-            if (!pc) return;
-            console.log(`📥 [WEBRTC] Handling SDP Offer in room ${roomId}`);
-            await pc.setRemoteDescription(new RTCSessionDescription(offer));
-            await drainPendingCandidates(pc);
+            if (!pc) {
+                console.log(`📥 [WEBRTC] Buffering incoming offer (PeerConnection not ready yet)`);
+                pendingOfferRef.current = offer;
+                return;
+            }
 
-            const answer = await pc.createAnswer();
-            await pc.setLocalDescription(answer);
-            socket.emit('webrtc:answer', { roomId, answer });
+            try {
+                console.log(`📥 [WEBRTC] Handling SDP Offer in room ${roomId}`);
+                await pc.setRemoteDescription(new RTCSessionDescription(offer));
+                await drainPendingCandidates(pc);
+
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                socket.emit('webrtc:answer', { roomId, answer });
+            } catch (err) {
+                console.error('[WEBRTC Offer Error]:', err);
+            }
         };
 
         const handleAnswer = async ({ answer }) => {
             const pc = peerConnectionRef.current;
             if (!pc) return;
-            console.log(`📥 [WEBRTC] Handling SDP Answer in room ${roomId}`);
-            await pc.setRemoteDescription(new RTCSessionDescription(answer));
-            await drainPendingCandidates(pc);
+            try {
+                console.log(`📥 [WEBRTC] Handling SDP Answer in room ${roomId}`);
+                await pc.setRemoteDescription(new RTCSessionDescription(answer));
+                await drainPendingCandidates(pc);
+            } catch (err) {
+                console.error('[WEBRTC Answer Error]:', err);
+            }
         };
 
         const handleIceCandidate = async ({ candidate }) => {
+            if (!candidate) return;
             const pc = peerConnectionRef.current;
-            if (!pc || !candidate) return;
-
-            if (!pc.remoteDescription) {
+            if (!pc || !pc.remoteDescription) {
                 pendingCandidatesRef.current.push(candidate);
-            } else {
-                try {
-                    await pc.addIceCandidate(new RTCIceCandidate(candidate));
-                } catch (err) {
-                    console.warn('[WEBRTC ICE ERROR]', err.message);
-                }
+                return;
+            }
+
+            try {
+                await pc.addIceCandidate(new RTCIceCandidate(candidate));
+            } catch (err) {
+                console.warn('[WEBRTC ICE ERROR]', err.message);
             }
         };
 
@@ -169,32 +228,12 @@ export const useWebRTC = (roomId, isCaller, onPeerLeft) => {
             socket.off('call:ended', handlePeerSkipped);
             closePeerConnection();
         };
-    }, [roomId, isCaller]);
+    }, [roomId, isCaller, closePeerConnection, onPeerLeft]);
 
-    // Close PeerConnection without stopping local hardware camera tracks
-    const closePeerConnection = () => {
-        if (peerConnectionRef.current) {
-            peerConnectionRef.current.close();
-            peerConnectionRef.current = null;
-        }
-        setRemoteStream(null);
-        setConnectionState('connecting');
-        pendingCandidatesRef.current = [];
-    };
-
-    // Full shutdown (called when user completely leaves video chat)
-    const stopAllTracks = () => {
-        closePeerConnection();
-        if (persistentLocalStream) {
-            persistentLocalStream.getTracks().forEach((track) => track.stop());
-            persistentLocalStream = null;
-            setLocalStream(null);
-        }
-    };
-
+    // Mute / Unmute Audio Track
     const toggleAudio = () => {
-        if (persistentLocalStream) {
-            const audioTrack = persistentLocalStream.getAudioTracks()[0];
+        if (localStream) {
+            const audioTrack = localStream.getAudioTracks()[0];
             if (audioTrack) {
                 audioTrack.enabled = !audioTrack.enabled;
                 setAudioMuted(!audioTrack.enabled);
@@ -202,20 +241,38 @@ export const useWebRTC = (roomId, isCaller, onPeerLeft) => {
         }
     };
 
+    // Video On / Off Track
     const toggleVideo = () => {
-        if (persistentLocalStream) {
-            const videoTrack = persistentLocalStream.getVideoTracks()[0];
+        if (localStream) {
+            const videoTrack = localStream.getVideoTracks()[0];
             if (videoTrack) {
                 videoTrack.enabled = !videoTrack.enabled;
-                setVideoOff(!videoTrack.enabled);
+                setIsVideoOff(!videoTrack.enabled);
             }
         }
     };
 
-    // Skip current call & immediately search for next stranger
+    const setIsVideoOff = (val) => setVideoOff(val);
+
+    // Skip to next stranger (notifies peer via socket before tear down)
     const skipCall = () => {
         const socket = getSocket();
-        socket.emit('call:skip', { roomId });
+        if (roomId) {
+            socket.emit('call:skip', { roomId });
+        }
+        closePeerConnection();
+    };
+
+    // End call completely and release hardware
+    const stopAllTracks = () => {
+        const socket = getSocket();
+        if (roomId) {
+            socket.emit('call:end', { roomId });
+        }
+        if (persistentLocalStream) {
+            persistentLocalStream.getTracks().forEach((track) => track.stop());
+            persistentLocalStream = null;
+        }
         closePeerConnection();
     };
 
