@@ -1,9 +1,12 @@
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import UserModel from "../models/user.model.js";
+import AuthSessionModel from "../models/authSession.model.js";
 import ApiError from './ApiError.js';
 import { env } from '../config/env.js';
+import { getRequestLocation } from './geoIp.js';
 
-export const generateAccessAndRefreshTokens = async (userId) => {
+export const generateAccessAndRefreshTokens = async (userId, req = null) => {
     try {
         const user = await UserModel.findById(userId);
 
@@ -42,6 +45,27 @@ export const generateAccessAndRefreshTokens = async (userId) => {
 
         user.refreshToken = refreshToken;
         await user.save({ validateBeforeSave: false });
+
+        // Record session history in AuthSessionModel if request context is provided
+        if (req) {
+            try {
+                const ua = req.headers['user-agent'] || 'Web Browser';
+                const { ip, location } = getRequestLocation(req);
+                const refreshTokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+                const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+                await AuthSessionModel.create({
+                    userId: user._id,
+                    refreshTokenHash,
+                    device: ua,
+                    ip,
+                    location,
+                    expiresAt
+                });
+            } catch (sessErr) {
+                console.warn('[AUTH SESSION LOGGING NOTICE]', sessErr.message);
+            }
+        }
 
         return { accessToken, refreshToken };
 

@@ -25,6 +25,11 @@ const AuthSessionSchema = new mongoose.Schema({
         default: "",
         trim: true
     },
+    location: {
+        type: String,
+        default: "Unknown Location",
+        trim: true
+    },
     expiresAt: {
         type: Date,
         required: true,

@@ -146,7 +146,7 @@ const googleAuthUser = async (req, res) => {
         }
     }
 
-    const { accessToken: accessTok, refreshToken: refreshTok } = await generateAccessAndRefreshTokens(user._id);
+    const { accessToken: accessTok, refreshToken: refreshTok } = await generateAccessAndRefreshTokens(user._id, req);
 
     const loggedInUser = await UserModel.findById(user._id).select('-password -refreshToken');
     const options = getCookieOptions();
@@ -209,7 +209,7 @@ const registerUser = async(req , res) => {
     isVerified: false
    });
 
-   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(NewUser._id);
+   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(NewUser._id, req);
 
    const { otp } = await generateVerificationOtpService(NewUser._id, "email_verify");
    console.log(`[EMAIL OTP] Verification OTP generated for user: ${otp}`);
@@ -268,7 +268,7 @@ const loginUser = async (req , res)=> {
     await User.save({ validateBeforeSave: false });
   }
 
-  const {accessToken , refreshToken} = await generateAccessAndRefreshTokens(User._id);
+  const {accessToken , refreshToken} = await generateAccessAndRefreshTokens(User._id, req);
 
   const logInUser = await UserModel.findById(User._id).select("-password -refreshToken");
 

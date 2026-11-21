@@ -22,7 +22,7 @@ const UserMenu = () => {
         { label: 'Call History', path: '/home/history' },
         { label: 'Settings', path: '/home/settings' },
         { label: 'Help & Support', path: '/home/settings/help' },
-        ...(isAdminOrMod ? [{ label: 'Admin Panel', path: '/admin' }] : []),
+        ...(isAdminOrMod ? [{ label: 'Admin Web', path: '/admin', isSpecial: true }] : []),
         { label: 'Log out', action: onLogoutSubmit, isDanger: true }
     ];
 
@@ -166,9 +166,18 @@ const UserMenu = () => {
                                     role="menuitem"
                                     tabIndex={isOpen ? 0 : -1}
                                     onClick={() => handleItemClick(item)}
-                                    className="w-full text-left px-3 py-2 text-xs font-medium text-neutral-600 hover:text-black hover:bg-neutral-200/60 rounded-xl transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                                    className={`w-full text-left px-3 py-2 text-xs font-medium rounded-xl transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black flex items-center justify-between ${
+                                        item.isSpecial
+                                            ? 'text-purple-700 bg-purple-50 hover:bg-purple-100 font-bold'
+                                            : 'text-neutral-600 hover:text-black hover:bg-neutral-200/60'
+                                    }`}
                                 >
-                                    {item.label}
+                                    <span>{item.label}</span>
+                                    {item.isSpecial && (
+                                        <span className="px-1.5 py-0.5 rounded-full bg-purple-600 text-white text-[9px] font-bold tracking-wider">
+                                            ADMIN
+                                        </span>
+                                    )}
                                 </button>
                             );
                         })}

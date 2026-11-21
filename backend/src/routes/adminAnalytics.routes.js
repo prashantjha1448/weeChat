@@ -5,6 +5,6 @@ import { getPlatformStats } from '../controller/adminAnalytics.controller.js';
 
 const router = express.Router();
 
-router.get('/stats', authMiddleware, requireRole(['admin']), getPlatformStats);
+router.get('/stats', authMiddleware, requireRole(['admin', 'moderator']), getPlatformStats);
 
 export default router;

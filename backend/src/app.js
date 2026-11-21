@@ -28,6 +28,9 @@ import supportRoutes from './routes/support.routes.js';
 import adminUserRoutes from './routes/adminUser.routes.js';
 import adminAnalyticsRoutes from './routes/adminAnalytics.routes.js';
 import adminConfigRoutes from './routes/adminConfig.routes.js';
+import adminAdsRoutes from './routes/adminAds.routes.js';
+import adminTransactionRoutes from './routes/adminTransaction.routes.js';
+import { getActivePublicAds, trackAdEvent } from './controller/adminAds.controller.js';
 import uploadRoutes from './routes/upload.routes.js';
 import customRoomRoutes from './routes/customRoom.routes.js';
 import publicStatsRoutes from './routes/publicStats.routes.js';
@@ -117,6 +120,11 @@ app.use('/api/public/stats/', publicStatsRoutes);
 app.use('/api/admin/', adminUserRoutes);
 app.use('/api/admin/', adminAnalyticsRoutes);
 app.use('/api/admin/', adminConfigRoutes);
+app.use('/api/admin/', adminAdsRoutes);
+app.use('/api/admin/', adminTransactionRoutes);
+app.get('/api/ads/active', getActivePublicAds);
+app.get('/api/public/ads', getActivePublicAds);
+app.post('/api/ads/:placementId/event', trackAdEvent);
 
 // 9. 404 & Global Error Handling
 app.use(notFound);
