@@ -75,8 +75,8 @@ export const getPlatformStats = async (req, res) => {
                 .sort({ createdAt: -1 })
                 .limit(5),
             ReportModel.find({ status: "pending" })
-                .populate('reporterId', 'name username')
-                .populate('reportedUserId', 'name username avatar isBanned')
+                .populate({ path: 'reporter', select: 'name username', strictPopulate: false })
+                .populate({ path: 'reportedUser', select: 'name username avatar isBanned', strictPopulate: false })
                 .sort({ createdAt: -1 })
                 .limit(5),
             ProfileModel.find({ city: { $exists: true, $ne: '' } }).select('city state country').limit(50)

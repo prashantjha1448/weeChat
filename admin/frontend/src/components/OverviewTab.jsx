@@ -231,12 +231,18 @@ const OverviewTab = ({ stats, loading, onNavigateTab, onTriggerBroadcast, onTrig
                     </div>
                     <div className="flex items-baseline gap-2">
                         <p className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-neutral-100">
-                            {stats?.activeUsersNow || 1}
+                            {stats?.activeUsersNow ?? 0}
                         </p>
-                        <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                            Live
-                        </span>
+                        {(stats?.activeUsersNow || 0) > 0 ? (
+                            <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                                Live
+                            </span>
+                        ) : (
+                            <span className="text-[11px] font-medium text-neutral-400">
+                                Standby
+                            </span>
+                        )}
                     </div>
                     <p className="mt-2 text-[11px] text-neutral-500 truncate">
                         Active WebRTC socket streams
@@ -425,19 +431,19 @@ const OverviewTab = ({ stats, loading, onNavigateTab, onTriggerBroadcast, onTrig
                                         <div className="min-w-0">
                                             <div className="flex items-center gap-1.5 flex-wrap">
                                                 <span className="text-xs font-bold text-neutral-900 dark:text-neutral-100">
-                                                    @{rep.reportedUserId?.username || 'Reported User'}
+                                                    @{rep.reportedUser?.username || rep.reportedUserId?.username || 'Reported User'}
                                                 </span>
                                                 <span className="px-1.5 py-0.2 rounded-md bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 text-[9px] font-bold uppercase">
                                                     {rep.reason || 'Violation'}
                                                 </span>
                                             </div>
                                             <p className="text-[11px] text-neutral-500 truncate max-w-[280px]">
-                                                Flagged by @{rep.reporterId?.username || 'user'} • "{rep.description || 'Behavior report'}"
+                                                Flagged by @{rep.reporter?.username || rep.reporterId?.username || 'user'} • "{rep.description || 'Behavior report'}"
                                             </p>
                                         </div>
 
                                         <button
-                                            onClick={() => handleQuickBan(rep.reportedUserId)}
+                                            onClick={() => handleQuickBan(rep.reportedUser || rep.reportedUserId)}
                                             className="px-3 py-1.5 rounded-xl bg-rose-600 text-white text-xs font-bold shrink-0 hover:bg-rose-700 cursor-pointer shadow-xs"
                                         >
                                             Ban User
