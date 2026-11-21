@@ -6,7 +6,7 @@ import api from './axios.js';
 
 // 1. Auth & Current Admin
 export const getAdminProfile = async () => {
-    const res = await api.get('/user/me');
+    const res = await api.get('/auth/get-me');
     return res.data?.data;
 };
 

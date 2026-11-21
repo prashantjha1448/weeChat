@@ -49,10 +49,8 @@ app.use(helmetSecurity);
 // 3. Exact CORS Origin Allowlist Configuration
 const isOriginAllowed = (origin) => {
     if (!origin) return true;
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) return true;
     if (env.parsedClientUrls && env.parsedClientUrls.includes(origin)) return true;
-    if (env.NODE_ENV !== 'production' && (origin.includes('localhost') || origin.includes('127.0.0.1'))) {
-        return true;
-    }
     if (origin === 'https://wee-chat-virid.vercel.app' || /^https:\/\/wee-chat[a-z0-9-]*\.vercel\.app$/.test(origin)) {
         return true;
     }
