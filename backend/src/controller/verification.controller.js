@@ -5,9 +5,8 @@ import { generateVerificationOtpService, verifyOtpTokenService } from '../servic
 // POST /api/auth/resend-otp
 export const resendOtp = async (req, res) => {
     const { type } = req.body;
-    const { otp, expiresAt } = await generateVerificationOtpService(req.user._id, type || "email_verify");
-    console.log(`[EMAIL OTP] Resent OTP for user ${req.user.email}: ${otp}`);
-    return res.status(200).json(new ApiResponse(200, { expiresAt, otp }, "Verification OTP sent successfully"));
+    const { expiresAt } = await generateVerificationOtpService(req.user._id, type || "email_verify");
+    return res.status(200).json(new ApiResponse(200, { expiresAt }, "Verification OTP sent successfully"));
 };
 
 // POST /api/auth/verify-email

@@ -16,11 +16,18 @@ export const startCallSessionService = async (userAId, userBId) => {
     return session;
 };
 
-// End a Call Session with duration and end reason
-export const endCallSessionService = async (sessionId, endReason = "user_skipped") => {
+// End a Call Session with duration and end reason (IDOR Protected)
+export const endCallSessionService = async (sessionId, userId = null, endReason = "user_skipped") => {
     const session = await CallSessionModel.findById(sessionId);
     if (!session) {
         throw new ApiError(404, "Call session not found");
+    }
+
+    if (userId) {
+        const isParticipant = String(session.userA) === String(userId) || String(session.userB) === String(userId);
+        if (!isParticipant) {
+            throw new ApiError(403, "Access Denied: You are not an authorized participant in this call session");
+        }
     }
 
     const endedAt = new Date();

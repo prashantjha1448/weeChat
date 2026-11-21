@@ -18,6 +18,16 @@ import {
 import { getAdminAds, updateAdminAds, toggleAdPlacement } from './admin.api.js';
 import { toast } from 'sonner';
 
+// Safe URL Helper to prevent JavaScript pseudo-protocol DOM XSS
+const getSafeAdUrl = (url) => {
+    if (!url || typeof url !== 'string') return '#';
+    const clean = url.trim();
+    if (clean.startsWith('http://') || clean.startsWith('https://')) {
+        return clean;
+    }
+    return '#';
+};
+
 /**
  * AdsTab — Website Ad Placement Controller & Live Preview
  * ("webiste p add laga kaha lagana all things")
@@ -386,9 +396,9 @@ const AdsTab = () => {
 
                                                 {currentAd.targetUrl && (
                                                     <a
-                                                        href={currentAd.targetUrl}
+                                                        href={getSafeAdUrl(currentAd.targetUrl)}
                                                         target="_blank"
-                                                        rel="noreferrer"
+                                                        rel="noopener noreferrer"
                                                         className="mt-3 block text-center py-1.5 rounded-xl bg-black text-white dark:bg-white dark:text-black text-[11px] font-bold hover:opacity-90 transition-opacity"
                                                     >
                                                         Visit Website →

@@ -20,6 +20,7 @@ export const uploadMediaMiddleware = multer({
     storage,
     fileFilter: mediaFileFilter,
     limits: {
-        fileSize: 50 * 1024 * 1024 // 50 MB max limit for video uploads
+        fileSize: 10 * 1024 * 1024, // 10 MB max memory limit to prevent Node.js heap exhaustion DoS
+        files: 1
     }
 });

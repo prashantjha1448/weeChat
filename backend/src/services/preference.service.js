@@ -20,11 +20,20 @@ export const getUserPreferenceService = async (userId) => {
     return preference;
 };
 
-// Create or Update Match Preferences
-export const createOrUpdatePreferenceService = async (userId, preferenceData) => {
+// Create or Update Match Preferences (Mass-Assignment Protected)
+export const createOrUpdatePreferenceService = async (userId, preferenceData = {}) => {
+    const safePayload = {};
+    const allowedKeys = ['gender', 'targetLocationMode', 'interests'];
+
+    for (const key of allowedKeys) {
+        if (preferenceData[key] !== undefined) {
+            safePayload[key] = preferenceData[key];
+        }
+    }
+
     const updatedPreference = await MatchPreferenceModel.findOneAndUpdate(
         { userId },
-        { $set: preferenceData },
+        { $set: safePayload },
         { new: true, upsert: true, runValidators: true }
     );
 

@@ -80,8 +80,17 @@ export const registerCustomRoomHandlers = (io, socket) => {
         }
     });
 
-    // 2. Targeted WebRTC Offer
+    // Helper to verify target socket belongs to the same room
+    const isTargetInSameRoom = (targetSocketId) => {
+        if (!targetSocketId || !socket.currentRoomId) return false;
+        const channelName = `custom_room_${socket.currentRoomId}`;
+        const targetSocket = io.sockets.sockets.get(targetSocketId);
+        return Boolean(targetSocket && socket.rooms.has(channelName) && targetSocket.rooms.has(channelName));
+    };
+
+    // 2. Targeted WebRTC Offer (Restricted to verified room peers)
     socket.on('webrtc:room-offer', ({ targetSocketId, offer }) => {
+        if (!isTargetInSameRoom(targetSocketId) || !offer) return;
         io.to(targetSocketId).emit('webrtc:room-offer', {
             senderSocketId: socket.id,
             senderUserId: user._id,
@@ -90,16 +99,18 @@ export const registerCustomRoomHandlers = (io, socket) => {
         });
     });
 
-    // 3. Targeted WebRTC Answer
+    // 3. Targeted WebRTC Answer (Restricted to verified room peers)
     socket.on('webrtc:room-answer', ({ targetSocketId, answer }) => {
+        if (!isTargetInSameRoom(targetSocketId) || !answer) return;
         io.to(targetSocketId).emit('webrtc:room-answer', {
             senderSocketId: socket.id,
             answer
         });
     });
 
-    // 4. Targeted WebRTC ICE Candidate
+    // 4. Targeted WebRTC ICE Candidate (Restricted to verified room peers)
     socket.on('webrtc:room-ice', ({ targetSocketId, candidate }) => {
+        if (!isTargetInSameRoom(targetSocketId) || !candidate) return;
         io.to(targetSocketId).emit('webrtc:room-ice', {
             senderSocketId: socket.id,
             candidate

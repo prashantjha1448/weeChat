@@ -72,7 +72,10 @@ export const searchUsersAdmin = async (req, res) => {
     const perPage = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
     const skip = (currentPage - 1) * perPage;
 
-    const sortOption = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+    const allowedSortFields = ['createdAt', 'name', 'username', 'email', 'updatedAt'];
+    const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    const safeSortOrder = sortOrder === 'asc' ? 1 : -1;
+    const sortOption = { [safeSortBy]: safeSortOrder };
 
     const [users, total] = await Promise.all([
         UserModel.find(filter)

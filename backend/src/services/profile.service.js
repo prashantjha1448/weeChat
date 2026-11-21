@@ -28,11 +28,21 @@ export const getUserProfileService = async (userId) => {
     return profile;
 };
 
-// Create or Update Profile details
-export const createOrUpdateProfileService = async (userId, profileData) => {
+// Create or Update Profile details (Mass-Assignment Protected)
+export const createOrUpdateProfileService = async (userId, profileData = {}) => {
+    // Whitelist only safe user-updatable fields
+    const safePayload = {};
+    const allowedKeys = ['displayName', 'avatar', 'dob', 'gender', 'heightCm', 'country', 'state', 'city', 'languages', 'bio'];
+
+    for (const key of allowedKeys) {
+        if (profileData[key] !== undefined) {
+            safePayload[key] = profileData[key];
+        }
+    }
+
     const updatedProfile = await ProfileModel.findOneAndUpdate(
         { userId },
-        { $set: profileData },
+        { $set: safePayload },
         { new: true, upsert: true, runValidators: true }
     );
 

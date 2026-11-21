@@ -52,12 +52,31 @@ app.use(cors({
         if (allowedOrigins.includes(origin)) {
             return callback(null, true);
         }
-        return callback(null, true);
+        if (/^https:\/\/wee-chat[a-z0-9-]*\.vercel\.app$/.test(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error(`CORS Access Denied: Origin ${origin} is not authorized for Admin Backend`));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Admin-Client']
 }));
+
+// CSRF Defense for Admin Backend
+app.use((req, res, next) => {
+    if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+        return next();
+    }
+    const requestedWith = req.header('X-Requested-With');
+    if (requestedWith !== 'weechat-admin' && requestedWith !== 'weechat') {
+        return res.status(403).json({
+            success: false,
+            statusCode: 403,
+            message: 'CSRF Protection: Missing or invalid X-Requested-With header'
+        });
+    }
+    next();
+});
 
 // Body Parsers & Cookies
 app.use(express.json({ limit: '10mb' }));

@@ -4,6 +4,7 @@ import { OAuth2Client } from 'google-auth-library';
 import ApiError from '../utils/ApiError.js'
 import ApiResponse from '../utils/ApiResponse.js'
 import UserModel from '../models/user.model.js'
+import AuthSessionModel from '../models/authSession.model.js'
 import { generateAccessAndRefreshTokens } from '../utils/generateTokens.js'
 import { generateVerificationOtpService } from '../services/verification.service.js'
 import { env } from '../config/env.js';
@@ -211,15 +212,17 @@ const registerUser = async(req , res) => {
 
    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(NewUser._id, req);
 
-   const { otp } = await generateVerificationOtpService(NewUser._id, "email_verify");
-   console.log(`[EMAIL OTP] Verification OTP generated for user: ${otp}`);
+   await generateVerificationOtpService(NewUser._id, "email_verify");
+   if (env.NODE_ENV !== 'production') {
+       console.log(`[EMAIL OTP] Verification OTP generated for user: ${NewUser.email}`);
+   }
 
    const createdUser = await UserModel.findById(NewUser._id).select("-password -refreshToken");
 
    const options = getCookieOptions();
 
    return res.status(201).cookie("accessToken" , accessToken , options).cookie("refreshToken", refreshToken , options).json(
-    new ApiResponse(201, { user : createdUser , accessToken , refreshToken, otp } , "User registered successfully. Please verify your email OTP.")
+    new ApiResponse(201, { user : createdUser , accessToken , refreshToken } , "User registered successfully. Please verify your email OTP.")
    );
 };
 
@@ -286,13 +289,18 @@ const getCurrentUser = async (req , res)=>{
 }
 
 const LogoutUser = async (req , res)=>{
+  if (req.user?._id) {
+    await UserModel.findByIdAndUpdate(req.user._id, { $unset: { refreshToken: 1 } }, { new: true });
+    await AuthSessionModel.updateMany({ userId: req.user._id, revokedAt: null }, { revokedAt: new Date() });
+  }
 
-  await UserModel.findByIdAndUpdate(req.user._id , {$unset:{refreshToken : 1}},{new : true})
+  const options = getCookieOptions();
 
-  const options = {httpOnly : true , secure : process.env.NODE_ENV === "production"}
-
-  return res.status(200).cookie("accessToken", options).cookie("refreshToken",options).json(new ApiResponse(200 , {}, "User logged out successfully"))
-
+  return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "User logged out successfully"));
 }
 
 

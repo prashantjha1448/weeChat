@@ -27,6 +27,10 @@ try {
     const rawClientUrls = process.env.CLIENT_URLS || process.env.CORS_ORIGIN || 'http://localhost:5173,https://wee-chat-virid.vercel.app';
     const rawSameSite = ['lax', 'strict', 'none'].includes(process.env.COOKIE_SAMESITE) ? process.env.COOKIE_SAMESITE : 'lax';
 
+    if (process.env.NODE_ENV === 'production' && (!rawJwtSecret || rawJwtSecret.length < 32 || rawJwtSecret.includes('default_jwt_secret'))) {
+        throw new Error('FATAL SECURITY ERROR: JWT_SECRET must be at least 32 cryptographically secure characters in production.');
+    }
+
     parsedEnv = envSchema.parse({
         ...process.env,
         MONGO_URI: rawMongo,

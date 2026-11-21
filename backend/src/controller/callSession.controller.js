@@ -19,7 +19,7 @@ export const startCall = async (req, res) => {
 // POST /api/call/end
 export const endCall = async (req, res) => {
     const { sessionId, endReason } = req.body;
-    const session = await endCallSessionService(sessionId, endReason);
+    const session = await endCallSessionService(sessionId, req.user?._id, endReason);
     return res.status(200).json(new ApiResponse(200, session, "Call session ended"));
 };
 
