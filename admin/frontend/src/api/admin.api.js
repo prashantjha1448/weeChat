@@ -26,6 +26,16 @@ export const getAdminStats = async () => {
     return res.data?.data;
 };
 
+export const flushExpiredSessions = async () => {
+    const res = await api.post('/analytics/flush-sessions');
+    return res.data;
+};
+
+export const broadcastAnnouncement = async (title, message, priority = 'normal') => {
+    const res = await api.post('/analytics/broadcast', { title, message, priority });
+    return res.data;
+};
+
 // 3. User Management (CRUD)
 export const getAdminUsers = async (params = {}) => {
     const res = await api.get('/users', { params });
