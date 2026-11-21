@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import {
     LayoutDashboard,
     Users,
+    LifeBuoy,
     Megaphone,
     CreditCard,
-    ArrowLeft,
     Shield,
     Activity,
     RefreshCw,
@@ -13,13 +13,14 @@ import {
 import { Toaster, toast } from 'sonner';
 import OverviewTab from './components/OverviewTab.jsx';
 import UsersTab from './components/UsersTab.jsx';
+import QueriesTab from './components/QueriesTab.jsx';
 import AdsTab from './components/AdsTab.jsx';
 import PaymentsTab from './components/PaymentsTab.jsx';
 import AdminLoginModal from './components/AdminLoginModal.jsx';
 import { getAdminProfile, getAdminStats } from './api/admin.api.js';
 
 /**
- * App — Standalone weeChat Admin Web Application
+ * App — Dedicated Standalone weeChat Admin Web Application
  */
 function App() {
     const [adminUser, setAdminUser] = useState(null);
@@ -73,6 +74,12 @@ function App() {
     const tabs = [
         { id: 'overview', label: 'Overview & Demographics', icon: LayoutDashboard },
         { id: 'users', label: 'Clients & Device History', icon: Users, badge: stats?.totalUsers || null },
+        {
+            id: 'queries',
+            label: 'Client Queries & Helpdesk',
+            icon: LifeBuoy,
+            badge: stats?.openQueries ? `${stats.openQueries} Open` : null
+        },
         { id: 'ads', label: 'Website Ads Manager', icon: Megaphone },
         { id: 'payments', label: 'Payments & Gateway IDs', icon: CreditCard }
     ];
@@ -94,7 +101,7 @@ function App() {
                     </div>
 
                     <span className="px-2.5 py-0.5 rounded-full bg-black text-white dark:bg-white dark:text-black text-[10px] font-bold uppercase tracking-wider">
-                        Admin Web Portal
+                        Dedicated Admin Web
                     </span>
                 </div>
 
@@ -125,20 +132,20 @@ function App() {
                             W
                         </div>
                         <div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                                 <h1 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-                                    weeChat Admin Web
+                                    weeChat Admin Command Center
                                 </h1>
                                 <span className="px-2.5 py-0.5 rounded-full bg-black text-white dark:bg-white dark:text-black text-[10px] font-bold uppercase tracking-wider">
                                     {adminUser?.role || 'admin'}
                                 </span>
                                 <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                    Live MongoDB Atlas Connected
+                                    Dedicated Server :4000 • MongoDB Atlas
                                 </span>
                             </div>
                             <p className="text-xs text-neutral-500 mt-0.5">
-                                Centralized Administrative Control • Full Client CRUD • Device & Login Audits • Demographic Analytics • Ad Placements
+                                Client Query Resolver • Full Client CRUD • Device & Login Audits • Demographic Analytics • Ad Placements
                             </p>
                         </div>
                     </div>
@@ -196,6 +203,8 @@ function App() {
                     )}
 
                     {activeTab === 'users' && <UsersTab />}
+
+                    {activeTab === 'queries' && <QueriesTab />}
 
                     {activeTab === 'ads' && <AdsTab />}
 
