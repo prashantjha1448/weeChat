@@ -6,10 +6,13 @@ const getBaseUrl = () => {
         url = url.split(',')[0];
     }
     if (!url || !url.trim()) {
-        if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
-            url = 'https://weechat-api.onrender.com/api/';
+        if (typeof window !== 'undefined') {
+            if (window.location.hostname.includes('vercel.app')) {
+                url = 'https://weechat-api.onrender.com/api/';
+            } else {
+                url = `http://${window.location.hostname}:4000/api/`;
+            }
         } else {
-            // Dedicated Admin Backend on Port 4000
             url = 'http://localhost:4000/api/';
         }
     }
@@ -32,6 +35,8 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+    config.headers['X-Requested-With'] = 'weechat-admin';
+    config.headers['X-Admin-Client'] = 'weeChat-Admin-Web';
     const token = typeof window !== 'undefined' ? (localStorage.getItem('admin_token') || localStorage.getItem('token')) : null;
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;

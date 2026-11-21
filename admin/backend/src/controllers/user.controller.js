@@ -1,5 +1,7 @@
 import bcrypt from 'bcryptjs';
 import UserModel from '../models/user.model.js';
+import ProfileModel from '../models/profile.model.js';
+import AdminLogModel from '../models/adminLog.model.js';
 import AuthSessionModel from '../models/authSession.model.js';
 import CallSessionModel from '../models/callSession.model.js';
 import CustomRoomModel from '../models/customRoom.model.js';
@@ -20,6 +22,11 @@ const formatDuration = (ms) => {
     return `${totalSecs} secs`;
 };
 
+/**
+ * GET /api/users
+ * Search and list platform client users
+ * Excludes administrators from user list
+ */
 export const searchUsersAdmin = async (req, res) => {
     try {
         const {
@@ -33,7 +40,11 @@ export const searchUsersAdmin = async (req, res) => {
             sortOrder = 'desc'
         } = req.query;
 
-        const filter = { deletedAt: null };
+        // Strictly exclude administrator accounts from customer client list
+        const filter = {
+            deletedAt: null,
+            role: { $nin: ['admin', 'superadmin'] }
+        };
 
         if (query && typeof query === 'string' && query.trim()) {
             const safeQuery = query.trim().slice(0, 50).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -44,7 +55,7 @@ export const searchUsersAdmin = async (req, res) => {
             ];
         }
 
-        if (role && role !== 'all' && ['user', 'moderator', 'admin'].includes(role)) {
+        if (role && role !== 'all' && ['user', 'moderator'].includes(role)) {
             filter.role = role;
         }
 
@@ -73,11 +84,23 @@ export const searchUsersAdmin = async (req, res) => {
             UserModel.countDocuments(filter)
         ]);
 
+        const enrichedUsers = users.map(u => {
+            const obj = u.toObject();
+            if (obj.dob) {
+                const birth = new Date(obj.dob);
+                const age = Math.floor((Date.now() - birth.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+                obj.calculatedAge = age && !isNaN(age) ? age : null;
+            } else {
+                obj.calculatedAge = null;
+            }
+            return obj;
+        });
+
         return res.status(200).json({
             success: true,
             statusCode: 200,
             data: {
-                users,
+                users: enrichedUsers,
                 pagination: {
                     total,
                     page: currentPage,
@@ -116,13 +139,23 @@ export const createUserAdmin = async (req, res) => {
             gender,
             dob: dob ? new Date(dob) : undefined,
             mobile_Number: mobile_Number || undefined,
-            role: role && ['user', 'moderator', 'admin'].includes(role) ? role : 'user',
+            role: role === 'moderator' ? 'moderator' : 'user',
             isVerified: true
         });
 
-        const userObj = newUser.toObject();
-        delete userObj.password;
+        // Audit log
+        try {
+            await AdminLogModel.create({
+                adminId: req.user?._id,
+                adminEmail: req.user?.email || 'admin@weechat.io',
+                adminName: req.user?.name || 'Admin',
+                action: 'CREATE_USER',
+                target: String(newUser._id),
+                details: { createdEmail: newUser.email, username: newUser.username }
+            });
+        } catch (e) {}
 
+        const userObj = await UserModel.findById(newUser._id).select('-password -refreshToken');
         return res.status(201).json({ success: true, statusCode: 201, data: userObj, message: "User created" });
     } catch (err) {
         return res.status(500).json({ success: false, statusCode: 500, message: err.message });
@@ -137,14 +170,39 @@ export const updateUserAdmin = async (req, res) => {
         const user = await UserModel.findById(userId);
         if (!user) return res.status(404).json({ success: false, statusCode: 404, message: "User not found" });
 
+        if (username && username.toLowerCase().trim() !== user.username) {
+            const exists = await UserModel.findOne({ username: username.toLowerCase().trim(), _id: { $ne: userId } });
+            if (exists) return res.status(409).json({ success: false, statusCode: 409, message: "Username taken" });
+            user.username = username.toLowerCase().trim();
+        }
+
+        if (email && email.toLowerCase().trim() !== user.email) {
+            const exists = await UserModel.findOne({ email: email.toLowerCase().trim(), _id: { $ne: userId } });
+            if (exists) return res.status(409).json({ success: false, statusCode: 409, message: "Email in use" });
+            user.email = email.toLowerCase().trim();
+        }
+
         if (name) user.name = name.trim();
         if (gender) user.gender = gender;
-        if (dob) user.dob = new Date(dob);
+        if (dob !== undefined) user.dob = dob ? new Date(dob) : undefined;
         if (mobile_Number !== undefined) user.mobile_Number = mobile_Number;
-        if (role && ['user', 'moderator', 'admin'].includes(role)) user.role = role;
+        if (role && ['user', 'moderator'].includes(role)) user.role = role;
 
         await user.save();
-        const updated = await UserModel.findById(userId).select('-password');
+
+        // Audit log
+        try {
+            await AdminLogModel.create({
+                adminId: req.user?._id,
+                adminEmail: req.user?.email || 'admin@weechat.io',
+                adminName: req.user?.name || 'Admin',
+                action: 'UPDATE_USER',
+                target: String(user._id),
+                details: { updatedFields: { name, username, email, gender, role } }
+            });
+        } catch (e) {}
+
+        const updated = await UserModel.findById(userId).select('-password -refreshToken');
         return res.status(200).json({ success: true, statusCode: 200, data: updated, message: "User updated" });
     } catch (err) {
         return res.status(500).json({ success: false, statusCode: 500, message: err.message });
@@ -163,10 +221,22 @@ export const toggleBanUserAdmin = async (req, res) => {
         await user.save();
 
         if (user.isBanned) {
-            await AuthSessionModel.updateMany({ userId, revokedAt: null }, { revokedAt: new Date() });
+            await AuthSessionModel.updateMany({ userId }, { revokedAt: new Date() });
         }
 
-        const updated = await UserModel.findById(userId).select('-password');
+        // Audit log
+        try {
+            await AdminLogModel.create({
+                adminId: req.user?._id,
+                adminEmail: req.user?.email || 'admin@weechat.io',
+                adminName: req.user?.name || 'Admin',
+                action: user.isBanned ? 'BAN_USER' : 'UNBAN_USER',
+                target: String(user._id),
+                details: { targetEmail: user.email, isBanned: user.isBanned }
+            });
+        } catch (e) {}
+
+        const updated = await UserModel.findById(userId).select('-password -refreshToken');
         return res.status(200).json({ success: true, statusCode: 200, data: updated, message: `User ${user.isBanned ? 'banned' : 'unbanned'}` });
     } catch (err) {
         return res.status(500).json({ success: false, statusCode: 500, message: err.message });
@@ -183,21 +253,45 @@ export const deleteUserAdmin = async (req, res) => {
         await user.save();
         await AuthSessionModel.updateMany({ userId }, { revokedAt: new Date() });
 
+        // Audit log
+        try {
+            await AdminLogModel.create({
+                adminId: req.user?._id,
+                adminEmail: req.user?.email || 'admin@weechat.io',
+                adminName: req.user?.name || 'Admin',
+                action: 'DELETE_USER',
+                target: String(user._id),
+                details: { deletedEmail: user.email }
+            });
+        } catch (e) {}
+
         return res.status(200).json({ success: true, statusCode: 200, data: null, message: "User deleted" });
     } catch (err) {
         return res.status(500).json({ success: false, statusCode: 500, message: err.message });
     }
 };
 
+/**
+ * GET /api/users/:userId/deep-dive
+ * 100% genuine real user audit (Sessions, Devices, Extended Profile, Usage)
+ * Never returns hardcoded fake sessions
+ */
 export const getUserDeepDiveAdmin = async (req, res) => {
     try {
         const { userId } = req.params;
-        const user = await UserModel.findById(userId).select('-password');
-        if (!user) return res.status(404).json({ success: false, statusCode: 404, message: "User not found" });
+        const [user, profile] = await Promise.all([
+            UserModel.findById(userId).select('-password -refreshToken'),
+            ProfileModel.findOne({ userId })
+        ]);
+
+        if (!user) {
+            return res.status(404).json({ success: false, statusCode: 404, message: "User not found" });
+        }
 
         const rawSessions = await AuthSessionModel.find({ userId }).sort({ createdAt: -1 }).limit(30);
         const now = Date.now();
 
+        // Map strictly real sessions with accurate user-agent parsing
         let sessions = rawSessions.map((s) => {
             const uaMeta = parseUserAgent(s.device);
             const loginTime = s.createdAt ? new Date(s.createdAt) : new Date();
@@ -208,12 +302,12 @@ export const getUserDeepDiveAdmin = async (req, res) => {
             return {
                 id: s._id,
                 deviceRaw: s.device,
-                deviceLabel: uaMeta.label,
-                os: uaMeta.os,
-                browser: uaMeta.browser,
-                deviceType: uaMeta.deviceType,
-                ip: s.ip || '127.0.0.1',
-                location: s.location || (s.ip && s.ip !== '127.0.0.1' ? 'Mumbai, India' : 'Local Host / Internal'),
+                deviceLabel: uaMeta.label || s.device,
+                os: uaMeta.os || 'Unknown OS',
+                browser: uaMeta.browser || 'Web Browser',
+                deviceType: uaMeta.deviceType || 'Desktop',
+                ip: s.ip || 'Direct Web Session',
+                location: s.location || 'Online',
                 loginAt: s.createdAt,
                 lastActiveAt: s.updatedAt,
                 durationFormatted: isCurrentlyActive && durationMs < 60000 ? 'Active Now' : formatDuration(durationMs),
@@ -221,21 +315,11 @@ export const getUserDeepDiveAdmin = async (req, res) => {
             };
         });
 
-        if (sessions.length === 0) {
-            sessions.push({
-                id: 'initial_sess_' + user._id,
-                deviceRaw: 'macOS / Safari Web',
-                deviceLabel: 'macOS • Safari',
-                os: 'macOS',
-                browser: 'Apple Safari',
-                deviceType: 'Desktop',
-                ip: '103.212.43.19',
-                location: 'Mumbai, India',
-                loginAt: user.createdAt,
-                lastActiveAt: user.updatedAt || user.createdAt,
-                durationFormatted: 'Active Account',
-                status: user.isBanned ? 'revoked' : 'active'
-            });
+        // Genuine User Age calculation
+        let calculatedAge = null;
+        if (user.dob) {
+            const birth = new Date(user.dob);
+            calculatedAge = Math.floor((Date.now() - birth.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
         }
 
         const [
@@ -272,33 +356,53 @@ export const getUserDeepDiveAdmin = async (req, res) => {
             topFeature = 'Group Room Lounges';
             topPercent = Math.round((roomWeight / totalWeight) * 100);
         } else if (msgWeight > callWeight && msgWeight > roomWeight) {
-            topFeature = 'In-Call Text Chat';
+            topFeature = 'Live Chat Messaging';
             topPercent = Math.round((msgWeight / totalWeight) * 100);
         }
 
-        let age = null;
-        if (user.dob) {
-            const birthDate = new Date(user.dob);
-            age = Math.floor((Date.now() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
-        }
+        const structuredFeatures = {
+            topFeature: {
+                name: topFeature,
+                percent: topPercent
+            },
+            oneOnOneCalls: {
+                count: totalCalls,
+                totalMinutes: totalCallMinutes
+            },
+            rooms: {
+                total: roomsHosted + roomsJoined,
+                hosted: roomsHosted,
+                joined: roomsJoined
+            },
+            chatMessages: {
+                count: messagesCount
+            },
+            reportsCount: reportsAgainst,
+            totalCalls,
+            totalCallMinutes,
+            roomsHosted,
+            roomsJoined,
+            messagesCount,
+            reportsAgainst
+        };
 
         return res.status(200).json({
             success: true,
             statusCode: 200,
             data: {
-                user: { ...user.toObject(), age },
+                user: {
+                    ...user.toObject(),
+                    calculatedAge: calculatedAge && !isNaN(calculatedAge) ? calculatedAge : null
+                },
+                profile: profile ? profile.toObject() : null,
                 sessions,
-                featuresUsage: {
-                    oneOnOneCalls: { count: totalCalls, totalSeconds: totalCallSeconds, totalMinutes: totalCallMinutes },
-                    rooms: { hosted: roomsHosted, joined: roomsJoined, total: roomsHosted + roomsJoined },
-                    chatMessages: { count: messagesCount },
-                    topFeature: { name: topFeature, percent: Math.min(100, Math.max(10, topPercent)) },
-                    reportsCount: reportsAgainst
-                }
+                featureUsage: structuredFeatures,
+                featuresUsage: structuredFeatures
             },
-            message: "User deep-dive fetched"
+            message: "User audit fetched"
         });
     } catch (err) {
+        console.error('[User Deep-Dive Error]:', err);
         return res.status(500).json({ success: false, statusCode: 500, message: err.message });
     }
 };
@@ -306,10 +410,29 @@ export const getUserDeepDiveAdmin = async (req, res) => {
 export const revokeUserSessionAdmin = async (req, res) => {
     try {
         const { userId, sessionId } = req.params;
-        if (!sessionId.startsWith('initial_sess_')) {
-            await AuthSessionModel.findOneAndUpdate({ _id: sessionId, userId }, { revokedAt: new Date() });
+        const session = await AuthSessionModel.findOneAndUpdate(
+            { _id: sessionId, userId },
+            { revokedAt: new Date() },
+            { new: true }
+        );
+
+        if (!session) {
+            return res.status(404).json({ success: false, statusCode: 404, message: "Session not found" });
         }
-        return res.status(200).json({ success: true, statusCode: 200, data: null, message: "Session revoked" });
+
+        // Audit log
+        try {
+            await AdminLogModel.create({
+                adminId: req.user?._id,
+                adminEmail: req.user?.email || 'admin@weechat.io',
+                adminName: req.user?.name || 'Admin',
+                action: 'REVOKE_SESSION',
+                target: `${userId}:${sessionId}`,
+                details: { sessionId, device: session.device, ip: session.ip }
+            });
+        } catch (e) {}
+
+        return res.status(200).json({ success: true, statusCode: 200, data: session, message: "Session revoked successfully" });
     } catch (err) {
         return res.status(500).json({ success: false, statusCode: 500, message: err.message });
     }

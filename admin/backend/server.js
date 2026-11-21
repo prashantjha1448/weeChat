@@ -48,13 +48,22 @@ if (process.env.CLIENT_URLS) {
 
 app.use(cors({
     origin: (origin, callback) => {
+        // Allow requests with no origin (curl, server-to-server)
         if (!origin) return callback(null, true);
+
+        // Allow any localhost or 127.0.0.1 port (5173, 5174, 5175, etc.) in local dev
+        if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+            return callback(null, true);
+        }
+
         if (allowedOrigins.includes(origin)) {
             return callback(null, true);
         }
+
         if (/^https:\/\/wee-chat[a-z0-9-]*\.vercel\.app$/.test(origin)) {
             return callback(null, true);
         }
+
         return callback(new Error(`CORS Access Denied: Origin ${origin} is not authorized for Admin Backend`));
     },
     credentials: true,
@@ -65,6 +74,14 @@ app.use(cors({
 // CSRF Defense for Admin Backend
 app.use((req, res, next) => {
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+        return next();
+    }
+    // Auth login endpoint does not require CSRF header
+    if (req.path === '/login' || req.originalUrl?.includes('/auth/login')) {
+        return next();
+    }
+    const origin = req.header('Origin') || req.header('Referer') || '';
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
         return next();
     }
     const requestedWith = req.header('X-Requested-With');

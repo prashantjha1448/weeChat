@@ -15,6 +15,11 @@ export const adminLogin = async (email, password) => {
     return res.data?.data;
 };
 
+export const getAdminAuditLogs = async (params = {}) => {
+    const res = await api.get('/auth/logs', { params });
+    return res.data?.data;
+};
+
 // 2. Platform Analytics & Demographics
 export const getAdminStats = async () => {
     const res = await api.get('/analytics/stats');

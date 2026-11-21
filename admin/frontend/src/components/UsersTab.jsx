@@ -241,9 +241,16 @@ const UsersTab = () => {
                                         </td>
 
                                         <td className="py-4 px-4 capitalize">
-                                            <p className="text-neutral-800 dark:text-neutral-200 font-semibold">
-                                                {u.gender || 'Not specified'}
-                                            </p>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="text-neutral-800 dark:text-neutral-200 font-semibold">
+                                                    {u.gender || 'Not specified'}
+                                                </span>
+                                                {u.calculatedAge && (
+                                                    <span className="px-1.5 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-800 text-[10px] font-bold text-neutral-600 dark:text-neutral-400">
+                                                        {u.calculatedAge} yrs
+                                                    </span>
+                                                )}
+                                            </div>
                                             <p className="text-[11px] text-neutral-400">
                                                 {u.dob ? new Date(u.dob).toLocaleDateString('en-US', {
                                                     month: 'short',

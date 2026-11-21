@@ -1,4 +1,6 @@
 import UserModel from '../models/user.model.js';
+import AdminModel from '../models/admin.model.js';
+import AdminLogModel from '../models/adminLog.model.js';
 import CallSessionModel from '../models/callSession.model.js';
 import CustomRoomModel from '../models/customRoom.model.js';
 import ChatMessageModel from '../models/chatMessage.model.js';
@@ -12,9 +14,13 @@ export const getPlatformStats = async (req, res) => {
         const now = new Date();
         const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000);
 
+        // Client User Filter: Strictly exclude admin accounts
+        const userFilter = { deletedAt: null, role: { $nin: ['admin', 'superadmin'] } };
+
         const [
             totalUsers,
             activeBannedUsers,
+            totalAdminsCount,
             totalCallsCompleted,
             callDurationAgg,
             totalRooms,
@@ -27,10 +33,12 @@ export const getPlatformStats = async (req, res) => {
             otherGenderCount,
             activeSessionsCount,
             usersWithDob,
-            txSummary
+            txSummary,
+            recentAdminLogs
         ] = await Promise.all([
-            UserModel.countDocuments({ deletedAt: null }),
-            UserModel.countDocuments({ isBanned: true }),
+            UserModel.countDocuments(userFilter),
+            UserModel.countDocuments({ ...userFilter, isBanned: true }),
+            AdminModel.countDocuments({ isActive: true }),
             CallSessionModel.countDocuments(),
             CallSessionModel.aggregate([
                 { $group: { _id: null, totalSeconds: { $sum: '$duration' } } }
@@ -40,14 +48,14 @@ export const getPlatformStats = async (req, res) => {
             ChatMessageModel.countDocuments(),
             ReportModel.countDocuments({ status: "pending" }),
             SupportTicketModel.countDocuments({ status: { $in: ["open", "in_progress"] } }),
-            UserModel.countDocuments({ gender: 'male', deletedAt: null }),
-            UserModel.countDocuments({ gender: 'female', deletedAt: null }),
-            UserModel.countDocuments({ gender: 'other', deletedAt: null }),
+            UserModel.countDocuments({ ...userFilter, gender: 'male' }),
+            UserModel.countDocuments({ ...userFilter, gender: 'female' }),
+            UserModel.countDocuments({ ...userFilter, gender: 'other' }),
             AuthSessionModel.countDocuments({
                 revokedAt: null,
                 updatedAt: { $gte: fifteenMinsAgo }
             }),
-            UserModel.find({ deletedAt: null }).select('dob gender createdAt'),
+            UserModel.find(userFilter).select('dob gender createdAt'),
             TransactionModel.aggregate([
                 {
                     $group: {
@@ -56,17 +64,17 @@ export const getPlatformStats = async (req, res) => {
                         totalAmount: { $sum: '$amount' }
                     }
                 }
-            ])
+            ]),
+            AdminLogModel.find().sort({ createdAt: -1 }).limit(10)
         ]);
 
-        const activeUsersNow = Math.max(1, activeSessionsCount || 1);
-
+        const activeUsersNow = activeSessionsCount || 0;
         const validTotalUsers = Math.max(1, totalUsers);
-        const malePercent = Math.round((maleCount / validTotalUsers) * 100);
-        const femalePercent = Math.round((femaleCount / validTotalUsers) * 100);
-        const otherPercent = Math.max(0, 100 - (malePercent + femalePercent));
+        const malePercent = totalUsers > 0 ? Math.round((maleCount / validTotalUsers) * 100) : 0;
+        const femalePercent = totalUsers > 0 ? Math.round((femaleCount / validTotalUsers) * 100) : 0;
+        const otherPercent = totalUsers > 0 ? Math.max(0, 100 - (malePercent + femalePercent)) : 0;
 
-        // Age Demographics from user dob
+        // Age Demographics dynamically calculated from genuine client dob
         const ageGroups = { '18-24': 0, '25-34': 0, '35-44': 0, '45+': 0, 'unspecified': 0 };
 
         usersWithDob.forEach((u) => {
@@ -91,11 +99,11 @@ export const getPlatformStats = async (req, res) => {
         });
 
         const ageBreakdown = [
-            { group: '18-24 yrs', count: ageGroups['18-24'], percent: Math.round((ageGroups['18-24'] / validTotalUsers) * 100) },
-            { group: '25-34 yrs', count: ageGroups['25-34'], percent: Math.round((ageGroups['25-34'] / validTotalUsers) * 100) },
-            { group: '35-44 yrs', count: ageGroups['35-44'], percent: Math.round((ageGroups['35-44'] / validTotalUsers) * 100) },
-            { group: '45+ yrs', count: ageGroups['45+'], percent: Math.round((ageGroups['45+'] / validTotalUsers) * 100) },
-            { group: 'Unspecified', count: ageGroups['unspecified'], percent: Math.round((ageGroups['unspecified'] / validTotalUsers) * 100) }
+            { group: '18-24 yrs', count: ageGroups['18-24'], percent: totalUsers > 0 ? Math.round((ageGroups['18-24'] / validTotalUsers) * 100) : 0 },
+            { group: '25-34 yrs', count: ageGroups['25-34'], percent: totalUsers > 0 ? Math.round((ageGroups['25-34'] / validTotalUsers) * 100) : 0 },
+            { group: '35-44 yrs', count: ageGroups['35-44'], percent: totalUsers > 0 ? Math.round((ageGroups['35-44'] / validTotalUsers) * 100) : 0 },
+            { group: '45+ yrs', count: ageGroups['45+'], percent: totalUsers > 0 ? Math.round((ageGroups['45+'] / validTotalUsers) * 100) : 0 },
+            { group: 'Unspecified', count: ageGroups['unspecified'], percent: totalUsers > 0 ? Math.round((ageGroups['unspecified'] / validTotalUsers) * 100) : 0 }
         ];
 
         const totalCallDurationSecs = callDurationAgg[0]?.totalSeconds || 0;
@@ -130,22 +138,26 @@ export const getPlatformStats = async (req, res) => {
             }
         ];
 
-        const sortedFeatures = [...featureUsage].sort((a, b) => b.sharePercent - a.sharePercent);
-        const mostUsedFeature = sortedFeatures[0]?.name || '1-on-1 Video Chat';
+        let mostUsedFeature = featureUsage[0];
+        featureUsage.forEach(f => {
+            if (f.sharePercent > mostUsedFeature.sharePercent) {
+                mostUsedFeature = f;
+            }
+        });
 
         let totalRevenue = 0;
         let successfulTx = 0;
         let pendingTx = 0;
         let failedTx = 0;
 
-        txSummary.forEach((t) => {
-            if (t._id === 'success') {
-                totalRevenue = t.totalAmount;
-                successfulTx = t.count;
-            } else if (t._id === 'pending') {
-                pendingTx = t.count;
-            } else if (t._id === 'failed') {
-                failedTx = t.count;
+        txSummary.forEach(item => {
+            if (item._id === 'success') {
+                totalRevenue = item.totalAmount || 0;
+                successfulTx = item.count || 0;
+            } else if (item._id === 'pending') {
+                pendingTx = item.count || 0;
+            } else if (item._id === 'failed') {
+                failedTx = item.count || 0;
             }
         });
 
@@ -154,6 +166,7 @@ export const getPlatformStats = async (req, res) => {
             statusCode: 200,
             data: {
                 totalUsers,
+                totalAdmins: totalAdminsCount,
                 activeUsersNow,
                 activeBannedUsers,
                 pendingReports,
@@ -179,9 +192,10 @@ export const getPlatformStats = async (req, res) => {
                     successfulCount: successfulTx,
                     pendingCount: pendingTx,
                     failedCount: failedTx
-                }
+                },
+                recentAdminLogs
             },
-            message: "Platform analytics fetched"
+            message: "Platform analytics fetched successfully"
         });
     } catch (err) {
         return res.status(500).json({
