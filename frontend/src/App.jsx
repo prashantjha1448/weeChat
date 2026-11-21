@@ -41,6 +41,8 @@ import MyReportsSubPage from "./features/settings/subpages/MyReportsSubPage";
 import SupportTicketsSubPage from "./features/settings/subpages/SupportTicketsSubPage";
 import JoinRoomRedirect from "./components/JoinRoomRedirect";
 import ComparisonPage from "./pages/ComparisonPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsOfServicePage from "./pages/TermsOfServicePage";
 
 const Routes = createBrowserRouter([
     // 1. Public Landing & Join Routes
@@ -59,6 +61,22 @@ const Routes = createBrowserRouter([
             {
                 path: 'why-weechat',
                 element: <ComparisonPage />
+            },
+            {
+                path: 'privacy',
+                element: <PrivacyPolicyPage />
+            },
+            {
+                path: 'privacy-policy',
+                element: <PrivacyPolicyPage />
+            },
+            {
+                path: 'terms',
+                element: <TermsOfServicePage />
+            },
+            {
+                path: 'terms-of-service',
+                element: <TermsOfServicePage />
             },
             {
                 path: 'join/:roomId',

@@ -588,10 +588,10 @@ const Publicpage = () => {
                         <div>
                             <h4 className="text-xs font-bold uppercase tracking-wider text-[#1D1D1F] mb-4">Safety & Trust</h4>
                             <ul className="space-y-2 text-xs text-neutral-600">
-                                <li><button onClick={() => navigate('/login')} className="hover:text-black cursor-pointer">Community Guidelines</button></li>
-                                <li><button onClick={() => navigate('/login')} className="hover:text-black cursor-pointer">Privacy Policy</button></li>
-                                <li><button onClick={() => navigate('/login')} className="hover:text-black cursor-pointer">Terms of Service</button></li>
-                                <li><button onClick={() => navigate('/login')} className="hover:text-black cursor-pointer">Report Abuse</button></li>
+                                <li><button onClick={() => navigate('/terms')} className="hover:text-black cursor-pointer">Community Guidelines</button></li>
+                                <li><button onClick={() => navigate('/privacy')} className="hover:text-black cursor-pointer font-medium text-blue-600">Privacy Policy</button></li>
+                                <li><button onClick={() => navigate('/terms')} className="hover:text-black cursor-pointer font-medium text-blue-600">Terms of Service</button></li>
+                                <li><button onClick={() => navigate('/terms')} className="hover:text-black cursor-pointer">Fair Use Policy</button></li>
                             </ul>
                         </div>
                     </div>

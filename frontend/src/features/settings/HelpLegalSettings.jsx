@@ -44,27 +44,27 @@ const HelpLegalSettings = () => {
             {/* 2. Legal Policies */}
             <AppleGroupedList header="LEGAL POLICIES">
                 <AppleGroupedRow
-                    label="Terms of Service"
+                    label="Terms of Service & Fair Use"
                     hasChevron
-                    onClick={() => setActiveLegalModal('terms')}
+                    onClick={() => navigate('/terms')}
                 />
                 <AppleGroupedRow
-                    label="Privacy Policy"
+                    label="Privacy Policy & Data Protection"
                     hasChevron
-                    onClick={() => setActiveLegalModal('privacy')}
+                    onClick={() => navigate('/privacy')}
                 />
                 <AppleGroupedRow
                     label="Community Guidelines"
                     hasChevron
-                    onClick={() => setActiveLegalModal('guidelines')}
+                    onClick={() => navigate('/terms')}
                 />
             </AppleGroupedList>
 
-            {/* 3. About Nexus */}
+            {/* 3. About weeChat */}
             <AppleGroupedList header="ABOUT">
                 <AppleGroupedRow
-                    label="Nexus Match Application"
-                    subtitle="Version 1.0.0 (Build 2026.09.30)"
+                    label="weeChat Web Application"
+                    subtitle="Version 2.0.0 (Apple Glass Edition)"
                     control={
                         <span className="px-2.5 py-1 rounded-full bg-neutral-100 text-[#1D1D1F] text-xs font-semibold">
                             Up to Date
